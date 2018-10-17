@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2027
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nativeMultitasking", "nativeMultitasking\nativeMultitasking.vcxproj", "{186CF062-7EE9-4C16-9687-D7D485599F17}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{186CF062-7EE9-4C16-9687-D7D485599F17}.Debug|x64.ActiveCfg = Debug|x64
+		{186CF062-7EE9-4C16-9687-D7D485599F17}.Debug|x64.Build.0 = Debug|x64
+		{186CF062-7EE9-4C16-9687-D7D485599F17}.Debug|x86.ActiveCfg = Debug|Win32
+		{186CF062-7EE9-4C16-9687-D7D485599F17}.Debug|x86.Build.0 = Debug|Win32
+		{186CF062-7EE9-4C16-9687-D7D485599F17}.Release|x64.ActiveCfg = Release|x64
+		{186CF062-7EE9-4C16-9687-D7D485599F17}.Release|x64.Build.0 = Release|x64
+		{186CF062-7EE9-4C16-9687-D7D485599F17}.Release|x86.ActiveCfg = Release|Win32
+		{186CF062-7EE9-4C16-9687-D7D485599F17}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2DE3B2AD-A1FD-4E86-B416-34219BA7A27F}
+	EndGlobalSection
+EndGlobal
