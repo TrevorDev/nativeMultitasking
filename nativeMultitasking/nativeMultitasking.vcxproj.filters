@@ -33,4 +33,15 @@
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="logging.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="oldVulk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="appWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>

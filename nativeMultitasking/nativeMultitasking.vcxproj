@@ -166,6 +166,11 @@
     <None Include="shader.frag" />
     <None Include="shader.vert" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="logging.h" />
+    <ClInclude Include="oldVulk.h" />
+    <ClInclude Include="appWindow.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
