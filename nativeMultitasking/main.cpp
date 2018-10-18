@@ -880,6 +880,10 @@ private:
 
 		std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
+		// TODO: EXTERNAM MEMORY
+		// extensions.push_back("VK_KHR_get_physical_device_properties2");
+		// extensions.push_back("VK_KHR_external_semaphore_capabilities");
+		// extensions.push_back("VK_KHR_external_memory_capabilities");
 		if (enableValidationLayers) {
 			extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 		}
