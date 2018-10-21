@@ -1,29 +1,30 @@
 #pragma once
-
 class AppWindow {
 public:
-	AppWindow() {
+	AppWindow(int width, int height) {
 		glfwInit();
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		this->window = glfwCreateWindow(WIDTH, HEIGHT, "3D Multitasking", nullptr, nullptr);
+		this->window = glfwCreateWindow(width, height, "3D Multitasking", nullptr, nullptr);
 
 		glfwSetWindowUserPointer(window, this);
 		glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
-		
 	}
 	bool framebufferResized = false;
-	VkSurfaceKHR createSurface(VkInstance instance){
+	vk::SurfaceKHR createSurface(vk::Instance instance){
 		VkSurfaceKHR surface;
 		if (glfwCreateWindowSurface(instance, this->window, nullptr, &surface) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create window surface!");
 		}
-		return surface;
+		return vk::SurfaceKHR(surface);
 	}
 	void getFramebufferSize(int* width, int* height) {
 		glfwGetFramebufferSize(this->window, width, height);
 	}
 	bool shouldClose() {
 		return glfwWindowShouldClose(this->window);
+	}
+	void update() {
+		glfwPollEvents();
 	}
 private:
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {

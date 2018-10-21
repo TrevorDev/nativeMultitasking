@@ -43,5 +43,11 @@
     <ClInclude Include="appWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="vulkanManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vulkanRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
