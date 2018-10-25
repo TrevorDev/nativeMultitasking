@@ -24,22 +24,24 @@ void runNew() {
 	// Create renderer
 	auto renderer = VulkanRenderer();
 	renderer.initializeInstance(true);
-	
-	// Create surface
+	// Create surface which is displayed by the app window
 	vk::SurfaceKHR surface = appWindow.createSurface(renderer.instance);
-
-	renderer.initializePhysicalAndLogicalDevice(surface);
-
+	// Initialize a gpu device that is compatable with the screen
+	renderer.initializePhysicalAndLogicalDevice(surface);		
 	int width, height;
 	appWindow.getFramebufferSize(&width, &height);
+
+	// Test function for creating external memory
+	//renderer.createImage(width, height);
+
 	renderer.createSwapchainAndMemory(surface, width, height);
 	renderer.createRenderPass();
 	renderer.createGraphicsPipeline(surface);
 
-	while (!appWindow.shouldClose()) {
+	//while (!appWindow.shouldClose()) {
 		appWindow.update();
 		renderer.render();
-	}
+	//}
 	renderer.finish();
 	log("Success");
 }

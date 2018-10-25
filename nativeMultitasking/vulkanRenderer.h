@@ -179,8 +179,9 @@ public:
 		swapchainCreateInfo.presentMode = presentMode;
 		swapchainCreateInfo.clipped = VK_TRUE;
 
-
-		this->swapChain = device.createSwapchainKHR(swapchainCreateInfo);
+		//auto callbacks = vk::AllocationCallbacks();
+		// TODO: EXTERNAL MEMORY HERE in allocator
+		this->swapChain = device.createSwapchainKHR(swapchainCreateInfo);// , callbacks);
 		this->swapChainImages = this->device.getSwapchainImagesKHR(this->swapChain);
 
 		this->swapChainImageFormat = surfaceFormat.format;
@@ -526,6 +527,24 @@ public:
 
 	void finish() {
 		device.waitIdle();
+	}
+
+	void createImage(int width, int height) {
+		vk::ExternalMemoryImageCreateInfo extMemory = {};
+		extMemory.handleTypes = vk::ExternalMemoryHandleTypeFlagBits::eOpaqueFd | vk::ExternalMemoryHandleTypeFlagBits::eOpaqueWin32;
+
+		vk::ImageCreateInfo imageCreateInfo;
+		imageCreateInfo.pNext = &extMemory;
+		imageCreateInfo.imageType = vk::ImageType::e2D;
+		imageCreateInfo.format = vk::Format::eB8G8R8A8Unorm;
+		imageCreateInfo.extent = vk::Extent3D(width, height, 1);
+		imageCreateInfo.mipLevels = 1;
+		imageCreateInfo.arrayLayers = 1;
+		imageCreateInfo.samples = vk::SampleCountFlagBits::e1;
+		imageCreateInfo.usage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled;
+		//imageCreateInfo.initialLayout = vk::ImageLayout::eColorAttachmentOptimal;
+		this->device.createImage(imageCreateInfo);
+
 	}
 
 	vk::Instance instance;
