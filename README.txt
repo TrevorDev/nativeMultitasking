@@ -1,3 +1,7 @@
+Dependencies:
+ - npm install --global windows-build-tools
+ - npm install
+
 BUILD:
  - node-gyp configure build
 
