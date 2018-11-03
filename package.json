@@ -1,17 +1,18 @@
 {
-  "name": "nodeaddon",
+  "name": "nativemultitasking",
   "version": "1.0.0",
-  "description": "",
+  "description": "BUILD:\r   - npm start",
   "main": "index.js",
+  "dependencies": {
+    "node-addon-api": "^1.5.0"
+  },
+  "devDependencies": {},
   "scripts": {
-    "start": "node-gyp configure build && node index.js",
+    "start": "node-gyp configure build --directory=nativeSrc && node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "install": "node-gyp rebuild"
   },
   "author": "",
   "license": "ISC",
-  "gypfile": true,
-  "dependencies": {
-    "node-addon-api": "^1.5.0"
-  }
+  "gypfile": true
 }

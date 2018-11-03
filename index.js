@@ -1,3 +1,3 @@
-const addon = require('./build/Release/appWindow');
-
-console.log(addon.hello());
+var app = require('./nativeSrc/build/Release/app');
+console.log("Launching app ------------------------------------------------------")
+app.run("Hello World");
