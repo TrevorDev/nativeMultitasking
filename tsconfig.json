@@ -1,0 +1,10 @@
+// https://webpack.js.org/guides/typescript/
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "target": "es5",
+        "jsx": "react",
+        "allowJs": true,
+        "lib": [ "es2015" ]
+    }
+}
