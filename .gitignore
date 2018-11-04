@@ -1,5 +1,4 @@
 .vscode
 nativeSrc/build/
-nativeSrc/external/
 node_modules/
 *.spv
