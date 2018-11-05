@@ -6,7 +6,8 @@ var main = async ()=>{
     await glsl.compileShader("shaders/shader.vert", "shaders/vert.spv")
     await glsl.compileShader("shaders/shader.frag", "shaders/frag.spv")
     console.log("Launching app ------------------------------------------------------")
-    app.run("Hello World")
+    app.init("Hello World")
+    app.render("Hello World")
 }
 main().catch((e)=>{
     console.error(e)
