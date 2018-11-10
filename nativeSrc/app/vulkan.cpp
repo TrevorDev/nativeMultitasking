@@ -1,6 +1,7 @@
 #define VK_USE_PLATFORM_WIN32_KHR
 #include <accctrl.h>
 #include <aclapi.h>
+#include <sddl.h>
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 
@@ -1009,54 +1010,40 @@ public:
 
         VkMemoryRequirements memRequirements;
         vkGetImageMemoryRequirements(device, image, &memRequirements);
-
-        // Allocate
-        SID_IDENTIFIER_AUTHORITY SIDAuthWorld = SECURITY_WORLD_SID_AUTHORITY;
-        PSID everyone_sid = NULL;
-        AllocateAndInitializeSid(&SIDAuthWorld, 1, SECURITY_WORLD_RID, 
-        0, 0, 0, 0, 0, 0, 0, &everyone_sid);
-
-        EXPLICIT_ACCESS ea;
-        ZeroMemory(&ea, sizeof(EXPLICIT_ACCESS));
-        ea.grfAccessPermissions = SPECIFIC_RIGHTS_ALL | STANDARD_RIGHTS_ALL;
-        ea.grfAccessMode = SET_ACCESS;
-        ea.grfInheritance = NO_INHERITANCE;
-        ea.Trustee.TrusteeForm = TRUSTEE_IS_SID;
-        BuildTrusteeWithSid(&ea.Trustee, everyone_sid);
-        // ea.Trustee.TrusteeType = TRUSTEE_IS_WELL_KNOWN_GROUP;
-        // ea.Trustee.pSid  = everyone_sid;
-
-        PACL acl = NULL;
-        SetEntriesInAcl(1, &ea, NULL, &acl);
-
-        PSECURITY_DESCRIPTOR sd = (PSECURITY_DESCRIPTOR)LocalAlloc(LPTR, 
-                                        SECURITY_DESCRIPTOR_MIN_LENGTH);
-        InitializeSecurityDescriptor(sd, SECURITY_DESCRIPTOR_REVISION);
-        SetSecurityDescriptorDacl(sd, TRUE, acl, FALSE);
-
-        // SECURITY_ATTRIBUTES sa;
-        // sa.nLength = sizeof(SECURITY_ATTRIBUTES);
-        // sa.lpSecurityDescriptor = sd;
-        // sa.bInheritHandle = FALSE;
-
-        // CreateDirectory(path, &sa);
-
-
-        // auto pSD = (PSECURITY_DESCRIPTOR)LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH);
-        // InitializeSecurityDescriptor(pSD, SECURITY_DESCRIPTOR_REVISION);
-        // SetSecurityDescriptorDacl(pSD, TRUE, NULL, FALSE);
         
+        // https://docs.microsoft.com/en-us/windows/desktop/SecAuthZ/sid-strings
+        // https://docs.microsoft.com/en-us/windows/desktop/SecBP/creating-a-dacl
+        // TODO to allow external processes https://stackoverflow.com/questions/46348163/how-to-transfer-the-duplicated-handle-to-the-child-process
+        // For now setting bInheritHandle auto allows child processes to work
+        SECURITY_ATTRIBUTES  sa;
+        sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+        sa.bInheritHandle = TRUE;
+        
+        TCHAR * szSD = TEXT("D:")       // Discretionary ACL
 
-        SECURITY_ATTRIBUTES secAttr;
-        secAttr.nLength = sizeof(SECURITY_ATTRIBUTES); //Set size of structure
-        secAttr.bInheritHandle = TRUE;
-        secAttr.lpSecurityDescriptor = sd; 
+        TEXT("(A;OICI;GRGWGX;;;WD)") // Allow 
+                                     // read/write/execute 
+                                     // to all users
+        //TEXT("(A;OICI;GA;;;LA)")
+        TEXT("(A;OICI;GA;;;WD)");    // Allow full control 
+                                     // to administrators  
 
+        std::cout << szSD << std::endl;
+
+        std::cout << ConvertStringSecurityDescriptorToSecurityDescriptor(
+                szSD,
+                SDDL_REVISION_1,
+                &((&sa)->lpSecurityDescriptor),
+                NULL) << std::endl;
+        // Allocate
+
+
+        
         // TODO secAttr needs to support external app instead of child process
         VkExportMemoryWin32HandleInfoKHR winExpInfo = {};
         winExpInfo.sType = VK_STRUCTURE_TYPE_EXPORT_MEMORY_WIN32_HANDLE_INFO_KHR;
         winExpInfo.dwAccess = GENERIC_ALL;
-        winExpInfo.pAttributes = &secAttr;
+        winExpInfo.pAttributes = &sa;
         //winExpInfo.name = L"testExp";
 
         VkExportMemoryAllocateInfo expAllocInfo = {};
