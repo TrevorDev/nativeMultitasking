@@ -8,10 +8,42 @@
 void run(const Napi::CallbackInfo& info) {
   jlog("Started!");
   try{
-    WindowManager wm = WindowManager(800,600);
+    int width = 800;
+    int height = 600;
+    WindowManager wm = WindowManager(width,height);
     VulkanRenderer renderer;
     renderer.createInstance();
     auto surface = wm.createSurface(renderer._instance);
+    renderer.pickPhysicalDevice(surface);
+    renderer.createLogicalDevice(surface);
+    wm.getFramebufferSize(&width, &height);
+    renderer.createSwapChain(surface, width, height);
+    renderer.createImageViews();
+    renderer.createRenderPass();
+    renderer.createDescriptorSetLayout();
+    renderer.createGraphicsPipeline();
+    renderer.createCommandPool(surface);
+    renderer.createDepthResources();
+    renderer.createFramebuffers();
+    renderer.createTextureImage();
+    renderer.createTextureImageView();
+    renderer.createTextureSampler();
+    renderer.createVertexBuffer();
+
+    renderer.createIndexBuffer();
+    renderer.createUniformBuffers();
+    renderer.createDescriptorPool();
+    renderer.createDescriptorSets();
+    renderer.createCommandBuffers();
+    renderer.createSyncObjects();
+
+    
+    while (!wm.shouldClose()) {
+        wm.update();
+        renderer.drawFrame();
+    }
+
+    //vkDeviceWaitIdle(device);
 
   }catch (const std::exception& e) {
     jlog("Native code threw an exception:");
