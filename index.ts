@@ -10,11 +10,13 @@ var main = async ()=>{
     await glsl.compileShader("shaders/shader.vert", "shaders/vert.spv")
     await glsl.compileShader("shaders/shader.frag", "shaders/frag.spv")
     console.log("Launching app ------------------------------------------------------")
-    try{
-        app.run();
-    }catch(e){
-        console.log(e)
+    
+    app.init();
+
+    while(!app.shouldClose()){ // This is a blocking call
+        app.render();
     }
+    
     console.log("Close success ------------------------------------------------------")
     
 }
