@@ -23,10 +23,12 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <vulkan/vulkan.hpp>
 #include <GLFW/glfw3.h>
 #include "j.h"
+#include "object3d/camera.cpp"
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 class VulkanRenderer {
@@ -139,8 +141,8 @@ class VulkanRenderer {
 
             std::set<std::string> requiredExtensions;
             requiredExtensions.insert(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-            requiredExtensions.insert(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
-            requiredExtensions.insert(VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME);
+            // requiredExtensions.insert(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
+            // requiredExtensions.insert(VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME);
             // requiredExtensions.insert(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
             // requiredExtensions.insert(VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME);
 
@@ -834,9 +836,22 @@ void createRenderPass() {
         auto currentTime = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
+        Camera c;
+        c.position.z = -3;
+        c.computeWorldMatrix();
+        
+        float x[] = {
+        1,0,0,0,
+        0,1,0,0,
+        0,0,1,0,
+        0,0,-3,1
+        };
+
+
         UniformBufferObject ubo = {};
-        ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        
+        ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        ubo.view = glm::make_mat4((float*)(c._worldMatrix.m));  //glm::lookAt(glm::vec3(0.0f, 0.0, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         ubo.proj = glm::perspective(glm::radians(45.0f), _swapChainExtent.width / (float) _swapChainExtent.height, 0.1f, 10.0f);
         ubo.proj[1][1] *= -1;
 
