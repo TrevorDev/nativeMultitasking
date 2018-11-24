@@ -1241,7 +1241,7 @@ void createRenderPass() {
         // info.sType = VK_STRUCTURE_TYPE_MEMORY_GET_WIN32_HANDLE_INFO_KHR;
         // info.handleType = VkExternalMemoryHandleTypeFlagBits::VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
         // info.memory = imageMemory;
-        HANDLE fd;
+        HANDLE fd = nullptr;
         
         //VkResult r = vkGetMemoryWin32HandleKHR(_device, &info, &fd);
         //std::cout << fd << std::endl;

@@ -4,13 +4,16 @@
 #include "j.h"
 #include "windowManager.cpp"
 #include "vulkanRenderer.cpp"
+#include "openvrSession.cpp"
 
 WindowManager* wm;
 VulkanRenderer renderer;
+OpenVRSession vrSession;
 
 void init(const Napi::CallbackInfo& info) {
   jlog("Started!");
   try{
+    vrSession.init();
     // Init objects
     int width = 800;
     int height = 600;

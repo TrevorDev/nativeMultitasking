@@ -6,6 +6,7 @@
       'include_dirs': [
         "<!@(node -p \"require('node-addon-api').include\")",
         "external/glfw/include",
+        "external/openvr/headers",
         "external",
         "external/stb",
         "$(VULKAN_SDK)/Include",
@@ -13,6 +14,7 @@
       'dependencies': ["<!(node -p \"require('node-addon-api').gyp\")"],
       "libraries": [
         "$(VULKAN_SDK)/Lib/vulkan-1.lib",
+        "../../nativeSrc/external/openvr/lib/win64/openvr_api.lib",
         "../../nativeSrc/external/glfw/lib-vc2015/glfw3dll.lib" # to link statically and not need to put .dll in root (use glfw3.lib but also need other libs) see http://www.glfw.org/docs/latest/build.html#build_link_win32
       ],
       # START: node-addon-api config --------------------------------------------
