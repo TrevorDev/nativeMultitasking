@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../math/quaternion.cpp";
-#include "../math/vector3.cpp";
-#include "../math/matrix4.cpp";
+#include "../math/quaternion.cpp"
+#include "../math/vector3.cpp"
+#include "../math/matrix4.cpp"
 
 class Node {
     public:

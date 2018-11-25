@@ -6,7 +6,16 @@
 void jlog(void* obj) {
 	std::cout << obj << std::endl;
 }
+void jlog(std::string obj) {
+	std::cout << obj << std::endl;
+}
 void jlog(int obj) {
+	std::cout << obj << std::endl;
+}
+void jlog(float obj) {
+	std::cout << obj << std::endl;
+}
+void jlog(unsigned long long obj) {
 	std::cout << obj << std::endl;
 }
 void jlog(const char* obj) {

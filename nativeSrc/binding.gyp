@@ -27,7 +27,7 @@
         'MACOSX_DEPLOYMENT_TARGET': '10.7',
       },
       'msvs_settings': {
-        'VCCLCompilerTool': { 'ExceptionHandling': 1, 'AdditionalOptions': ['/std:c++latest'] },
+        'VCCLCompilerTool': { 'ExceptionHandling': 1, 'AdditionalOptions': ['/std:c++latest', '/Od'] }, # /Od disables optimizations, should remove this for release
       },
       # END: node-addon-api config --------------------------------------------
     }

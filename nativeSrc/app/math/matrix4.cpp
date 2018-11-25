@@ -1,7 +1,7 @@
 #pragma once
 
-#include "quaternion.cpp";
-#include "vector3.cpp";
+#include "quaternion.cpp"
+#include "vector3.cpp"
 
 class Matrix4{
     public:
@@ -51,10 +51,10 @@ class Matrix4{
         float xw = rotation.x * rotation.w;
 
         FromValuesToRef(
-            1.0 - (2.0 * (yy + zz)), 2.0 * (xy + zw), 2.0 * (zx - yw), 0.0,
-            2.0 * (xy - zw), 1.0 - (2.0 * (zz + xx)), 2.0 * (yz + xw), 0.0,
-            2.0 * (zx + yw), 2.0 * (yz - xw), 1.0 - (2.0 * (yy + xx)), 0.0,
-            0.0, 0.0, 0.0, 1.0, 
+            1 - (2 * (yy + zz)), 2 * (xy + zw), 2 * (zx - yw), 0,
+            2 * (xy - zw), 1 - (2 * (zz + xx)), 2 * (yz + xw), 0,
+            2 * (zx + yw), 2 * (yz - xw), 1 - (2 * (yy + xx)), 0,
+            0, 0, 0, 1, 
             result
         );
     }
