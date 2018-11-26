@@ -22,6 +22,14 @@ public:
 	void getFramebufferSize(int* width, int* height) {
 		glfwGetFramebufferSize(this->window, width, height);
 	}
+	void getRequiredInstanceExtensions(std::vector<std::string>& vec){
+		uint32_t glfwExtensionCount = 0;
+        const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+        std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+		for(auto ext:extensions){
+			vec.push_back(ext);
+		}
+	}
 	bool shouldClose() {
 		return glfwWindowShouldClose(this->window);
 	}

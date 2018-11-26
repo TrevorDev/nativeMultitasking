@@ -13,18 +13,37 @@ OpenVRSession vrSession;
 void init(const Napi::CallbackInfo& info) {
   jlog("Started!");
   try{
-    vrSession.init();
-    // Init objects
+    // Init VR
+    auto vrEnabled = vrSession.init();
+
+    // Init window
     int width = 800;
     int height = 600;
     wm = new WindowManager(width,height);
-    renderer.createInstance();
+
+    // Create vulkan instance with extensions from display api's
+    std::vector<std::string> intanceExtensions = {
+      VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME,
+      VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME
+    };
+    wm->getRequiredInstanceExtensions(intanceExtensions);
+    if(vrEnabled){
+      vrSession.getVulkanInstanceExtensionsRequired(intanceExtensions);
+    }
+    renderer.createInstance(intanceExtensions);
+    
 
     // Create surface to render to
     auto surface = wm->createSurface(renderer._instance);
 
     // Create device to render with
-    renderer.pickPhysicalDevice(surface);
+    auto devices = renderer._instance.enumeratePhysicalDevices();
+    // if(vrEnabled){
+    //   // getting devices is broken in openVR, fallback to first device
+    //   // auto device = vrSession.getDesiredVulkanDevice(renderer._instance);
+    //   // jlog((void*)device);
+    // }
+    renderer.pickPhysicalDevice(surface, devices);
     renderer.createLogicalDevice(surface);
 
     // Create swapchain to render with
