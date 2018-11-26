@@ -42,7 +42,6 @@ public:
     VkPhysicalDevice getDesiredVulkanDevice(VkInstance_T * inst){
         uint64_t pHMDPhysicalDevice = 0;
 	    m_pHMD->GetOutputDevice( &pHMDPhysicalDevice, vr::TextureType_Vulkan, ( VkInstance_T * ) inst );
-        jlog(pHMDPhysicalDevice);
         return (VkPhysicalDevice)pHMDPhysicalDevice;
     }
 

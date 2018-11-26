@@ -38,11 +38,17 @@ void init(const Napi::CallbackInfo& info) {
 
     // Create device to render with
     auto devices = renderer._instance.enumeratePhysicalDevices();
-    // if(vrEnabled){
-    //   // getting devices is broken in openVR, fallback to first device
-    //   // auto device = vrSession.getDesiredVulkanDevice(renderer._instance);
-    //   // jlog((void*)device);
-    // }
+    if(vrEnabled){
+      // getting devices is broken in openVR, fallback to first device
+      auto device = vrSession.getDesiredVulkanDevice(renderer._instance);
+      if(device != nullptr){
+        devices.clear();
+        devices.push_back(device);
+        jlog("openVR GetOutputDevice provided recommended device");
+      }else{
+        jlog("openVR GetOutputDevice unexpectedly returned null, falling back to first device");
+      }
+    }
     renderer.pickPhysicalDevice(surface, devices);
     renderer.createLogicalDevice(surface);
 
