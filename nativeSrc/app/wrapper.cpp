@@ -14,7 +14,7 @@ void init(const Napi::CallbackInfo& info) {
   jlog("Started!");
   try{
     // Init VR
-    auto vrEnabled = vrSession.init();
+    auto vrEnabled = false;//= vrSession.init();
 
     // Init window
     int width = 800;
@@ -22,6 +22,7 @@ void init(const Napi::CallbackInfo& info) {
     wm = new WindowManager(width,height);
 
     // Create vulkan instance with extensions from display api's
+    // And with external memory for compositing
     std::vector<std::string> intanceExtensions = {
       VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME,
       VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME
