@@ -1,23 +1,7 @@
-//Win handle stuff
-#define VK_USE_PLATFORM_WIN32_KHR
-#include <accctrl.h>
-#include <aclapi.h>
-#include <sddl.h>
-
-#include <fstream>
-#include <stdexcept>
-#include <algorithm>
-#include <chrono>
-#include <vector>
-#include <cstring>
-#include <cstdlib>
-#include <array>
-#include <optional>
-#include <set>
+#include "engine/vulkanInc.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
-
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -25,7 +9,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <vulkan/vulkan.hpp>
 #include <GLFW/glfw3.h>
 #include "j.h"
 #include "object3d/camera.cpp"
@@ -1046,7 +1029,7 @@ void createRenderPass() {
         return details;
     }
 
-        VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
+    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
         if (availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED) {
             return{VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
         }

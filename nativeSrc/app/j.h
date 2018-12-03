@@ -42,4 +42,4 @@ static std::vector<char> jreadFile(const std::string& filename) {
 	file.close();
 
 	return buffer;
-}
+};

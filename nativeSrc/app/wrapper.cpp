@@ -3,12 +3,24 @@
 #define VK_USE_PLATFORM_WIN32_KHR
 #include "j.h"
 #include "windowManager.cpp"
-#include "vulkanRenderer.cpp"
 #include "openvrSession.cpp"
+#include "engine/renderer.cpp"
+#include "engine/renderPass.cpp"
+#include "engine/swapchain.cpp"
+#include "engine/descriptorSetLayout.cpp"
+#include "engine/shader.cpp"
+#include "engine/pipeline.cpp"
 
 WindowManager* wm;
-VulkanRenderer renderer;
 OpenVRSession vrSession;
+Renderer renderer;
+Swapchain swapchain;
+RenderPass renderPass;
+DescriptorSetLayout descriptorSetLayout;
+Pipeline p;
+
+Shader vertShader;
+Shader fragShader;
 
 void init(const Napi::CallbackInfo& info) {
   jlog("Started!");
@@ -31,60 +43,69 @@ void init(const Napi::CallbackInfo& info) {
     if(vrEnabled){
       vrSession.getVulkanInstanceExtensionsRequired(intanceExtensions);
     }
-    renderer.createInstance(intanceExtensions);
-    
+    renderer.init(intanceExtensions);
 
     // Create surface to render to
-    auto surface = wm->createSurface(renderer._instance);
+    auto surface = wm->createSurface(renderer._instance._instance);
+    renderer.initDevice(surface);
+    swapchain.init(surface, width, height, renderer._device);
+    renderPass.init(renderer._device, swapchain._swapChainImageFormat, renderer._device.findDepthFormat());
+    descriptorSetLayout.init(renderer._device);
 
+    vertShader.init(renderer._device, "shaders/vert.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT);
+    fragShader.init(renderer._device, "shaders/frag.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT);
+
+    p.init(renderer._device, swapchain, {vertShader, fragShader}, descriptorSetLayout, renderPass);
+
+    jlog("success");
     // Create device to render with
-    auto devices = renderer._instance.enumeratePhysicalDevices();
-    if(vrEnabled){
-      // getting devices is broken in openVR, fallback to first device
-      auto device = vrSession.getDesiredVulkanDevice(renderer._instance);
-      if(device != nullptr){
-        devices.clear();
-        devices.push_back(device);
-        jlog("openVR GetOutputDevice provided recommended device");
-      }else{
-        jlog("openVR GetOutputDevice unexpectedly returned null, falling back to first device");
-      }
-    }
-    renderer.pickPhysicalDevice(surface, devices);
-    renderer.createLogicalDevice(surface);
+    // auto devices = renderer._instance.enumeratePhysicalDevices();
+    // if(vrEnabled){
+    //   // getting devices is broken in openVR, fallback to first device
+    //   auto device = vrSession.getDesiredVulkanDevice(renderer._instance);
+    //   if(device != nullptr){
+    //     devices.clear();
+    //     devices.push_back(device);
+    //     jlog("openVR GetOutputDevice provided recommended device");
+    //   }else{
+    //     jlog("openVR GetOutputDevice unexpectedly returned null, falling back to first device");
+    //   }
+    // }
+    // renderer.pickPhysicalDevice(surface, devices);
+    // renderer.createLogicalDevice(surface);
 
-    // Create swapchain to render with
-    wm->getFramebufferSize(&width, &height);
-    renderer.createSwapChain(surface, width, height);
+    // // Create swapchain to render with
+    // wm->getFramebufferSize(&width, &height);
+    // renderer.createSwapChain(surface, width, height);
 
-    // setup rendering images and render pass
-    renderer.createImageViews();
-    renderer.createRenderPass();
-    renderer.createDescriptorSetLayout();
-    renderer.createGraphicsPipeline();
-    renderer.createCommandPool(surface);
-    renderer.createDepthResources();
-    renderer.createFramebuffers();
+    // // setup rendering images and render pass
+    // renderer.createImageViews();
+    // renderer.createRenderPass();
+    // renderer.createDescriptorSetLayout();
+    // renderer.createGraphicsPipeline();
+    // renderer.createCommandPool(surface);
+    // renderer.createDepthResources();
+    // renderer.createFramebuffers();
 
-    // Create image texture
-    renderer.createTextureImage();
-    renderer.createTextureImageView();
-    renderer.createTextureSampler();
+    // // Create image texture
+    // renderer.createTextureImage();
+    // renderer.createTextureImageView();
+    // renderer.createTextureSampler();
 
-    // Create mesh buffers to render texture on to
-    renderer.createVertexBuffer();
-    renderer.createIndexBuffer();
-    renderer.createUniformBuffers();
+    // // Create mesh buffers to render texture on to
+    // renderer.createVertexBuffer();
+    // renderer.createIndexBuffer();
+    // renderer.createUniformBuffers();
 
-    // bind buffers for rendering
-    renderer.createDescriptorPool();
-    renderer.createDescriptorSets();
+    // // bind buffers for rendering
+    // renderer.createDescriptorPool();
+    // renderer.createDescriptorSets();
 
-    // Create command buffers for the renderpass
-    renderer.createCommandBuffers();
+    // // Create command buffers for the renderpass
+    // renderer.createCommandBuffers();
 
-    // Create fences and semaphores used to wait until gpu is ready
-    renderer.createSyncObjects();
+    // // Create fences and semaphores used to wait until gpu is ready
+    // renderer.createSyncObjects();
 
     
     // while (!wm->shouldClose()) {
@@ -113,14 +134,14 @@ Napi::Boolean shouldClose(const Napi::CallbackInfo& info) {
 }
 
 void render(const Napi::CallbackInfo& info) {
-  try{
-    wm->update();
-    renderer.drawFrame();
-  }catch (const std::exception& e) {
-    jlog("Native code threw an exception:");
-    std::cerr << e.what() << std::endl;
-    throw;
-  }
+  // try{
+  //   wm->update();
+  //   renderer.drawFrame();
+  // }catch (const std::exception& e) {
+  //   jlog("Native code threw an exception:");
+  //   std::cerr << e.what() << std::endl;
+  //   throw;
+  // }
 }
 
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
