@@ -18,6 +18,7 @@ class Device {
     vk::Device _device;
     vk::Queue _graphicsQueue;
     vk::Queue _presentQueue;
+    vk::CommandPool _commandPool;
     Device(){
         
     }
@@ -76,6 +77,7 @@ class Device {
         }
 
         createLogicalDevice(surface);
+        createCommandPool(surface);
     };
     
     //private:
@@ -179,5 +181,28 @@ class Device {
             VK_IMAGE_TILING_OPTIMAL,
             VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
         );
+    }
+
+    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+        VkPhysicalDeviceMemoryProperties memProperties;
+        vkGetPhysicalDeviceMemoryProperties(_physicalDevice, &memProperties);
+
+        for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+            if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+                return i;
+            }
+        }
+
+        throw std::runtime_error("failed to find suitable memory type!");
+    }
+
+    void createCommandPool(VkSurfaceKHR surface) {
+        QueueFamilyIndices queueFamilyIndices = findQueueFamilies(_physicalDevice, surface);
+
+        VkCommandPoolCreateInfo poolInfo = {};
+        poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+
+        _commandPool = _device.createCommandPool(poolInfo);
     }
 };

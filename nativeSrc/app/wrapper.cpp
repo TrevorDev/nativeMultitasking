@@ -10,6 +10,7 @@
 #include "engine/descriptorSetLayout.cpp"
 #include "engine/shader.cpp"
 #include "engine/pipeline.cpp"
+#include "engine/image.cpp"
 
 WindowManager* wm;
 OpenVRSession vrSession;
@@ -17,7 +18,7 @@ Renderer renderer;
 Swapchain swapchain;
 RenderPass renderPass;
 DescriptorSetLayout descriptorSetLayout;
-Pipeline p;
+Pipeline pipeline;
 
 Shader vertShader;
 Shader fragShader;
@@ -55,7 +56,12 @@ void init(const Napi::CallbackInfo& info) {
     vertShader.init(renderer._device, "shaders/vert.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT);
     fragShader.init(renderer._device, "shaders/frag.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT);
 
-    p.init(renderer._device, swapchain, {vertShader, fragShader}, descriptorSetLayout, renderPass);
+    pipeline.init(renderer._device, swapchain, {vertShader, fragShader}, descriptorSetLayout, renderPass);
+
+    auto depthImage = Image();
+    depthImage._device = renderer._device;
+    depthImage.createImage(swapchain._swapChainExtent.width, swapchain._swapChainExtent.height, renderer._device.findDepthFormat(), VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    depthImage.createImageView(swapchain._swapChainImageFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 
     jlog("success");
     // Create device to render with
