@@ -11,6 +11,7 @@
 #include "engine/shader.cpp"
 #include "engine/pipeline.cpp"
 #include "engine/image.cpp"
+#include "object3d/mesh.cpp"
 
 WindowManager* wm;
 OpenVRSession vrSession;
@@ -58,10 +59,12 @@ void init(const Napi::CallbackInfo& info) {
 
     pipeline.init(renderer._device, swapchain, {vertShader, fragShader}, descriptorSetLayout, renderPass);
 
-    auto depthImage = Image();
-    depthImage._device = renderer._device;
-    depthImage.createImage(swapchain._swapChainExtent.width, swapchain._swapChainExtent.height, renderer._device.findDepthFormat(), VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-    depthImage.createImageView(swapchain._swapChainImageFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+    for(auto im : swapchain._swapChainImages){
+      im.createFrameBuffer(swapchain.depthImage, renderPass, swapchain._swapChainExtent.width, swapchain._swapChainExtent.height);
+    }
+    
+    Mesh m;
+    m.init(renderer._device, swapchain._swapChainImages.size());
 
     jlog("success");
     // Create device to render with

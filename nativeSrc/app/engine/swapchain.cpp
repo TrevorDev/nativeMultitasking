@@ -18,6 +18,7 @@ class Swapchain {
     VkFormat _swapChainImageFormat;
     vk::Extent2D _swapChainExtent;
     std::vector<Image> _swapChainImages = {};
+    Image depthImage;
     
     Swapchain(){
         
@@ -64,12 +65,17 @@ class Swapchain {
         _swapChain = device._device.createSwapchainKHR(createInfo);
         _swapChainImageFormat = surfaceFormat.format;
 
+        // depth image
+        depthImage._device = device;
+        depthImage.createImage(_swapChainExtent.width, _swapChainExtent.height, device.findDepthFormat(), VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        depthImage.createImageView(_swapChainImageFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+
         for(auto image : device._device.getSwapchainImagesKHR(_swapChain)){
             auto newImage = Image();
             newImage._image = image;
             newImage._device = device;
             newImage.createImageView(_swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
-            _swapChainImages.push_back(newImage);
+            _swapChainImages.push_back(newImage);            
         }
         _swapChainExtent = extent;
         jlog("created swapchain with image count of:");

@@ -3,6 +3,7 @@
 #include "j.h"
 #include "vulkanInc.h"
 #include "device.cpp"
+#include "renderPass.cpp"
 class Image {
     public:
     vk::Image _image;
@@ -27,6 +28,25 @@ class Image {
         viewInfo.subresourceRange.layerCount = 1;
 
         _imageView = _device._device.createImageView(viewInfo);
+    }
+
+    void createFrameBuffer(Image depthImage, RenderPass _renderPass, int width, int height){
+        // create framebuffer
+        std::array<VkImageView, 2> attachments = {
+            _imageView,
+            depthImage._imageView
+        };
+
+        VkFramebufferCreateInfo framebufferInfo = {};
+        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferInfo.renderPass = _renderPass._renderPass;
+        framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+        framebufferInfo.pAttachments = attachments.data();
+        framebufferInfo.width = width;
+        framebufferInfo.height = height;
+        framebufferInfo.layers = 1;
+
+        _framebuffer = _device._device.createFramebuffer(framebufferInfo);
     }
 
     HANDLE createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) {
