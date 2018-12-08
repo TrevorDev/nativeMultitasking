@@ -26,7 +26,7 @@ public:
 		uint32_t glfwExtensionCount = 0;
         const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
         std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-		for(auto ext:extensions){
+		for(auto& ext:extensions){
 			vec.push_back(ext);
 		}
 	}

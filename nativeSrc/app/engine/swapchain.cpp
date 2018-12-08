@@ -70,7 +70,7 @@ class Swapchain {
         depthImage.createImage(_swapChainExtent.width, _swapChainExtent.height, device.findDepthFormat(), VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
         depthImage.createImageView(_swapChainImageFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 
-        for(auto image : device._device.getSwapchainImagesKHR(_swapChain)){
+        for(auto& image : device._device.getSwapchainImagesKHR(_swapChain)){
             auto newImage = Image();
             newImage._image = image;
             newImage._device = device;

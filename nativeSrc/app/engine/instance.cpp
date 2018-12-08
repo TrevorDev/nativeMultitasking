@@ -24,9 +24,9 @@ class Instance {
 
         // Convert passed in extensions into vector<char*> of actual extensions
         std::vector<char*> initExtensions = {};
-        for(auto e : extensions){
+        for(auto& e : extensions){
             auto found = false;
-            for(auto x : actualExtensions){
+            for(auto& x : actualExtensions){
                 if(strcmp(e.c_str(), x.extensionName) == 0){
                     initExtensions.push_back((char*)(new std::string(x.extensionName))->c_str()); // TODO free this, for some reason i needed to make a copy here
                     found = true;

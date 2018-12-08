@@ -55,7 +55,7 @@ class Pipeline {
     void init(Device device, Swapchain swapchain, std::vector<Shader> inputShaderStages, DescriptorSetLayout descriptorSetLayout, RenderPass renderPass){
         VkPipelineShaderStageCreateInfo* shaderStages = new VkPipelineShaderStageCreateInfo[inputShaderStages.size()];
         auto i = 0;
-        for(auto stage : inputShaderStages){
+        for(auto& stage : inputShaderStages){
             shaderStages[i] = stage._shaderStageInfo;
             i++;
         }
@@ -160,7 +160,7 @@ class Pipeline {
         vk::PipelineCache x=vk::PipelineCache();
         _graphicsPipeline = device._device.createGraphicsPipeline(x, pipelineInfo, nullptr);
 
-        for(auto stage : inputShaderStages){
+        for(auto& stage : inputShaderStages){
             vkDestroyShaderModule(device._device, stage._shaderModule, nullptr);
         }
         // delete shaderStages;
@@ -168,7 +168,7 @@ class Pipeline {
     }
 
     std::vector<vk::CommandBuffer> _commandBuffers = {};
-    void createCommandBuffers(Device device, Swapchain sc, RenderPass renderPass, DescriptorSetLayout layout, int _indicesSize, vk::Buffer _vertexBuffer, vk::Buffer _indexBuffer) {
+    void createCommandBuffers(Device& device, Swapchain& sc, RenderPass& renderPass, DescriptorSetLayout& layout, int _indicesSize, vk::Buffer& _vertexBuffer, vk::Buffer& _indexBuffer) {
         _commandBuffers.resize(sc._swapChainImages.size());
 
         VkCommandBufferAllocateInfo allocInfo = {};

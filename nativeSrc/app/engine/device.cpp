@@ -6,6 +6,8 @@
 //#include "../object3d/mesh.cpp"
 //#include "descriptorSetLayout.cpp"
 
+int MAX_FRAMES_IN_FLIGHT = 2;
+
 struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
     std::optional<uint32_t> presentFamily;
@@ -280,7 +282,7 @@ class Device {
         vkFreeCommandBuffers(_device, _commandPool, 1, &commandBuffer);
     }
 
-    int MAX_FRAMES_IN_FLIGHT = 2;
+    
     std::vector<vk::Semaphore> _imageAvailableSemaphores;
     std::vector<vk::Semaphore> _renderFinishedSemaphores;
     std::vector<vk::Fence> _inFlightFences;

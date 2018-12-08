@@ -13,6 +13,7 @@
 #include "engine/image.cpp"
 #include "object3d/mesh.cpp"
 
+Mesh m;
 WindowManager* wm;
 OpenVRSession vrSession;
 Renderer renderer;
@@ -23,6 +24,13 @@ Pipeline pipeline;
 
 Shader vertShader;
 Shader fragShader;
+
+vk::SurfaceKHR surface;
+
+std::vector<std::string> intanceExtensions = {
+      VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME,
+      VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME
+    };
 
 void init(const Napi::CallbackInfo& info) {
   jlog("Started!");
@@ -37,10 +45,7 @@ void init(const Napi::CallbackInfo& info) {
 
     // Create vulkan instance with extensions from display api's
     // And with external memory for compositing
-    std::vector<std::string> intanceExtensions = {
-      VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME,
-      VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME
-    };
+    
     wm->getRequiredInstanceExtensions(intanceExtensions);
     if(vrEnabled){
       vrSession.getVulkanInstanceExtensionsRequired(intanceExtensions);
@@ -48,7 +53,7 @@ void init(const Napi::CallbackInfo& info) {
     renderer.init(intanceExtensions);
 
     // Create surface to render to
-    auto surface = wm->createSurface(renderer._instance._instance);
+    surface = wm->createSurface(renderer._instance._instance);
     renderer.initDevice(surface);
     swapchain.init(surface, width, height, renderer._device);
     renderPass.init(renderer._device, swapchain._swapChainImageFormat, renderer._device.findDepthFormat());
@@ -64,7 +69,7 @@ void init(const Napi::CallbackInfo& info) {
       jlog("done img");
     }
     
-    Mesh m;
+    
     m.init(renderer._device, swapchain._swapChainImages.size());
 
     descriptorSetLayout.createDescriptorPool(renderer._device, swapchain._swapChainImages.size());
@@ -73,6 +78,8 @@ void init(const Napi::CallbackInfo& info) {
     
     pipeline.createCommandBuffers(renderer._device, swapchain, renderPass, descriptorSetLayout, m._indices.size(), m._vertexBuffer, m._indexBuffer);
     renderer._device.createSyncObjects();
+
+    
     jlog("success");
     // Create device to render with
     // auto devices = renderer._instance.enumeratePhysicalDevices();
@@ -152,7 +159,8 @@ Napi::Boolean shouldClose(const Napi::CallbackInfo& info) {
 void render(const Napi::CallbackInfo& info) {
   try{
     wm->update();
-    //renderer.drawFrame();
+    
+    renderer.drawFrame(swapchain, m._uniformBuffersMemory, pipeline);
   }catch (const std::exception& e) {
     jlog("Native code threw an exception:");
     std::cerr << e.what() << std::endl;
