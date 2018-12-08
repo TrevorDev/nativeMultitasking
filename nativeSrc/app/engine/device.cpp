@@ -2,6 +2,9 @@
 
 #include "j.h"
 #include "vulkanInc.h"
+#include "../engine/glmInc.h"
+//#include "../object3d/mesh.cpp"
+//#include "descriptorSetLayout.cpp"
 
 struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
@@ -10,6 +13,12 @@ struct QueueFamilyIndices {
     bool isComplete() {
         return graphicsFamily.has_value() && presentFamily.has_value();
     }
+};
+
+struct UniformBufferObject {
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
 };
 
 class Device {
@@ -270,4 +279,30 @@ class Device {
 
         vkFreeCommandBuffers(_device, _commandPool, 1, &commandBuffer);
     }
+
+    int MAX_FRAMES_IN_FLIGHT = 2;
+    std::vector<vk::Semaphore> _imageAvailableSemaphores;
+    std::vector<vk::Semaphore> _renderFinishedSemaphores;
+    std::vector<vk::Fence> _inFlightFences;
+
+        void createSyncObjects() {
+        _imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+        _renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+        _inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+
+        VkSemaphoreCreateInfo semaphoreInfo = {};
+        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+        VkFenceCreateInfo fenceInfo = {};
+        fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+            _imageAvailableSemaphores[i] = _device.createSemaphore(semaphoreInfo);
+            _renderFinishedSemaphores[i] = _device.createSemaphore(semaphoreInfo);
+            _inFlightFences[i] = _device.createFence(fenceInfo);
+        }
+    }
+
+    
 };

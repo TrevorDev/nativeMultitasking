@@ -47,6 +47,11 @@ class Image {
         framebufferInfo.layers = 1;
 
         _framebuffer = _device._device.createFramebuffer(framebufferInfo);
+        jlog("create fb");
+        // VkFramebuffer fb = &_framebuffer.operator VkFramebuffer;
+        // if(!fb){
+        //     jlog("failed to create framebuffer");
+        // }
     }
 
     HANDLE createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) {

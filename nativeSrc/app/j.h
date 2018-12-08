@@ -22,6 +22,12 @@ void jlog(const char* obj) {
 	std::cout << obj << std::endl;
 }
 
+int _jnum = 0;
+
+void jcount(){
+	jlog(_jnum++);
+}
+
 void jwaitForEnter(){
     std::cin.get();
 }

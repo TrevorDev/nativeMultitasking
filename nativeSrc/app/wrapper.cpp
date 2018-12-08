@@ -59,13 +59,20 @@ void init(const Napi::CallbackInfo& info) {
 
     pipeline.init(renderer._device, swapchain, {vertShader, fragShader}, descriptorSetLayout, renderPass);
 
-    for(auto im : swapchain._swapChainImages){
+    for(auto& im : swapchain._swapChainImages){
       im.createFrameBuffer(swapchain.depthImage, renderPass, swapchain._swapChainExtent.width, swapchain._swapChainExtent.height);
+      jlog("done img");
     }
     
     Mesh m;
     m.init(renderer._device, swapchain._swapChainImages.size());
 
+    descriptorSetLayout.createDescriptorPool(renderer._device, swapchain._swapChainImages.size());
+    descriptorSetLayout.createDescriptorSets(renderer._device, swapchain._swapChainImages.size(), m._uniformBuffers);
+
+    
+    pipeline.createCommandBuffers(renderer._device, swapchain, renderPass, descriptorSetLayout, m._indices.size(), m._vertexBuffer, m._indexBuffer);
+    renderer._device.createSyncObjects();
     jlog("success");
     // Create device to render with
     // auto devices = renderer._instance.enumeratePhysicalDevices();
@@ -143,14 +150,14 @@ Napi::Boolean shouldClose(const Napi::CallbackInfo& info) {
 }
 
 void render(const Napi::CallbackInfo& info) {
-  // try{
-  //   wm->update();
-  //   renderer.drawFrame();
-  // }catch (const std::exception& e) {
-  //   jlog("Native code threw an exception:");
-  //   std::cerr << e.what() << std::endl;
-  //   throw;
-  // }
+  try{
+    wm->update();
+    //renderer.drawFrame();
+  }catch (const std::exception& e) {
+    jlog("Native code threw an exception:");
+    std::cerr << e.what() << std::endl;
+    throw;
+  }
 }
 
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
