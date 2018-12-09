@@ -6,7 +6,7 @@
 //#include "../object3d/mesh.cpp"
 //#include "descriptorSetLayout.cpp"
 
-//int MAX_FRAMES_IN_FLIGHT = 2;
+int MAX_FRAMES_IN_FLIGHT = 2;
 
 struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
