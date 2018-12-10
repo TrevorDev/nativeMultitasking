@@ -33,10 +33,7 @@ Shader fragShader;
 void init(const Napi::CallbackInfo& info) {
   jlog("Started!");
   try{
-
-    // Init window
     wm.init(800,600);
-
     // Create vulkan instance with extensions from display api's and with external memory for compositing
     std::vector<std::string> intanceExtensions = {
       VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME,
@@ -44,14 +41,15 @@ void init(const Napi::CallbackInfo& info) {
     };
     wm.getRequiredInstanceExtensions(intanceExtensions);
     renderer.initInstance(intanceExtensions);
-
-    // Create surface to render to
+    
+    // Create surface to render to and initialize a device compatable with that surface
     surface = wm.createSurface(renderer._instance._instance);
     renderer.initDevice(surface);
 
-
+    // create swapchain and renderpass with color + depth
     swapchain.init(surface, wm.getFramebufferSize().width, wm.getFramebufferSize().height, renderer._device);
     renderPass.init(renderer._device, swapchain._swapChainImageFormat, renderer._device.findDepthFormat());
+
     descriptorSetLayout.init(renderer._device);
 
     vertShader.init(renderer._device, "shaders/vert.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT);
@@ -76,62 +74,6 @@ void init(const Napi::CallbackInfo& info) {
 
     
     jlog("success");
-    // Create device to render with
-    // auto devices = renderer._instance.enumeratePhysicalDevices();
-    // if(vrEnabled){
-    //   // getting devices is broken in openVR, fallback to first device
-    //   auto device = vrSession.getDesiredVulkanDevice(renderer._instance);
-    //   if(device != nullptr){
-    //     devices.clear();
-    //     devices.push_back(device);
-    //     jlog("openVR GetOutputDevice provided recommended device");
-    //   }else{
-    //     jlog("openVR GetOutputDevice unexpectedly returned null, falling back to first device");
-    //   }
-    // }
-    // renderer.pickPhysicalDevice(surface, devices);
-    // renderer.createLogicalDevice(surface);
-
-    // // Create swapchain to render with
-    // wm.getFramebufferSize(&width, &height);
-    // renderer.createSwapChain(surface, width, height);
-
-    // // setup rendering images and render pass
-    // renderer.createImageViews();
-    // renderer.createRenderPass();
-    // renderer.createDescriptorSetLayout();
-    // renderer.createGraphicsPipeline();
-    // renderer.createCommandPool(surface);
-    // renderer.createDepthResources();
-    // renderer.createFramebuffers();
-
-    // // Create image texture
-    // renderer.createTextureImage();
-    // renderer.createTextureImageView();
-    // renderer.createTextureSampler();
-
-    // // Create mesh buffers to render texture on to
-    // renderer.createVertexBuffer();
-    // renderer.createIndexBuffer();
-    // renderer.createUniformBuffers();
-
-    // // bind buffers for rendering
-    // renderer.createDescriptorPool();
-    // renderer.createDescriptorSets();
-
-    // // Create command buffers for the renderpass
-    // renderer.createCommandBuffers();
-
-    // // Create fences and semaphores used to wait until gpu is ready
-    // renderer.createSyncObjects();
-
-    
-    // while (!wm.shouldClose()) {
-    //     wm.update();
-    //     renderer.drawFrame();
-    // }
-
-    //vkDeviceWaitIdle(device);
 
   }catch (const std::exception& e) {
     jlog("Native code threw an exception:");

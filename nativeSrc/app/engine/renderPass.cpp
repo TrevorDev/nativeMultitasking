@@ -8,19 +8,21 @@ class RenderPass {
     RenderPass(){
     }
     void init(Device device, VkFormat color,VkFormat depth) {
+        // color
         RenderPassAttachment colorAttach = RenderPassAttachment(color);
+
+        // depth
         RenderPassAttachment depthAttach = RenderPassAttachment(depth);
         depthAttach.attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         depthAttach.attachmentRef.attachment = 1;
         depthAttach.attachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-
+        // subpass and dependencys
         VkSubpassDescription subpass = {};
         subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subpass.colorAttachmentCount = 1;
         subpass.pColorAttachments = &colorAttach.attachmentRef;
         subpass.pDepthStencilAttachment = &depthAttach.attachmentRef;
-
         VkSubpassDependency dependency = {};
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
         dependency.dstSubpass = 0;
@@ -29,6 +31,7 @@ class RenderPass {
         dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
+        // Create renderpass with color+depth
         std::array<VkAttachmentDescription, 2> attachments = {colorAttach.attachment, depthAttach.attachment};
         VkRenderPassCreateInfo renderPassInfo = {};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;

@@ -26,23 +26,24 @@ class Swapchain {
         // Get information about features the swapchain supports and choose the ideal settings
         SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device._physicalDevice, surface);
         VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
-        VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-        VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities, width, height);
+        VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes); // TODO: this should be an option, i think VK_PRESENT_MODE_IMMEDIATE_KHR is best for vr
+        _swapChainExtent = chooseSwapExtent(swapChainSupport.capabilities, width, height);
 
-        // Set the count of images within  the swapchain
+        // Set the count of images within the swapchain
+        // TODO: expose this as an option
         uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
         if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
             imageCount = swapChainSupport.capabilities.maxImageCount;
         }
 
+        // Create the swapchain
         VkSwapchainCreateInfoKHR createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
         createInfo.surface = surface;
-
         createInfo.minImageCount = imageCount;
         createInfo.imageFormat = surfaceFormat.format;
         createInfo.imageColorSpace = surfaceFormat.colorSpace;
-        createInfo.imageExtent = extent;
+        createInfo.imageExtent = _swapChainExtent;
         createInfo.imageArrayLayers = 1;
         createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
@@ -66,7 +67,7 @@ class Swapchain {
         _swapChainImageFormat = surfaceFormat.format;
 
         
-
+        // Convert swapcahin images to image class
         for(auto& image : device._device.getSwapchainImagesKHR(_swapChain)){
             auto newImage = Image();
             newImage._image = image;
@@ -74,11 +75,11 @@ class Swapchain {
             newImage.createImageView(_swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
             _swapChainImages.push_back(newImage);            
         }
-        _swapChainExtent = extent;
         jlog("created swapchain with image count of:");
         jlog(_swapChainImages.size());
 
-        // depth image
+        // Create depth image used when drawing
+        // TODO not sure if this should be created here, somewhere else or if other buffers should be created like stencil?
         VkFormat depthFormat = device.findDepthFormat();
         _depthImage = Image();
         _depthImage._device = device;

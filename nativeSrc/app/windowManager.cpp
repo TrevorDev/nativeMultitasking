@@ -18,7 +18,7 @@ public:
 		glfwSetWindowUserPointer(window, this);
 		glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 	}
-	vk::SurfaceKHR createSurface(vk::Instance instance){
+	vk::SurfaceKHR createSurface(vk::Instance& instance){
 		VkSurfaceKHR surface;
 		if (glfwCreateWindowSurface(instance, this->window, nullptr, &surface) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create window surface!");

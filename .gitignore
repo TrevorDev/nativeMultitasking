@@ -2,3 +2,4 @@
 nativeSrc/build/
 node_modules/
 *.spv
+.vs
