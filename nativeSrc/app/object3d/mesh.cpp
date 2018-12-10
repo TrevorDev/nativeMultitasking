@@ -42,7 +42,7 @@ class Mesh {
         
     }
 
-    void init(Device device, int swapChainImageCount){
+    void init(Device device, uint32_t swapChainImageCount){
         createVertexBuffer(device);
         createIndexBuffer(device);
         createUniformBuffers(device, swapChainImageCount);
@@ -88,7 +88,7 @@ class Mesh {
         vkFreeMemory(device._device, stagingBufferMemory, nullptr);
     }
 
-    void createUniformBuffers(Device device, int swapChainImageCount) {
+    void createUniformBuffers(Device device, uint32_t swapChainImageCount) {
         VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
         _uniformBuffers.resize(swapChainImageCount);

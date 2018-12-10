@@ -168,7 +168,7 @@ class Pipeline {
     }
 
     std::vector<vk::CommandBuffer> _commandBuffers = {};
-    void createCommandBuffers(Device& device, Swapchain& sc, RenderPass& renderPass, DescriptorSetLayout& layout, int _indicesSize, vk::Buffer& _vertexBuffer, vk::Buffer& _indexBuffer) {
+    void createCommandBuffers(Device& device, Swapchain& sc, RenderPass& renderPass, DescriptorSetLayout& layout, uint32_t _indicesSize, vk::Buffer& _vertexBuffer, vk::Buffer& _indexBuffer) {
         _commandBuffers.resize(sc._swapChainImages.size());
 
         VkCommandBufferAllocateInfo allocInfo = {};

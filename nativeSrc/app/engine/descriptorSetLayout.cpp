@@ -36,7 +36,7 @@ class DescriptorSetLayout {
 
     vk::DescriptorPool _descriptorPool;
     std::vector<vk::DescriptorSet> _descriptorSets;
-    void createDescriptorPool(Device device, int swapChainImageCount) {
+    void createDescriptorPool(Device device, uint32_t swapChainImageCount) {
         std::array<VkDescriptorPoolSize, 2> poolSizes = {};
         poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         poolSizes[0].descriptorCount = static_cast<uint32_t>(swapChainImageCount);
@@ -52,7 +52,7 @@ class DescriptorSetLayout {
         _descriptorPool = device._device.createDescriptorPool(poolInfo);
     }
 
-    void createDescriptorSets(Device device, int swapChainImageCount, std::vector<vk::Buffer> _uniformBuffers) {
+    void createDescriptorSets(Device device, uint32_t swapChainImageCount, std::vector<vk::Buffer> _uniformBuffers) {
         std::vector<VkDescriptorSetLayout> layouts(swapChainImageCount, _descriptorSetLayout);
         VkDescriptorSetAllocateInfo allocInfo = {};
         allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;

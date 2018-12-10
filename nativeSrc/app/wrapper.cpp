@@ -3,7 +3,6 @@
 #define VK_USE_PLATFORM_WIN32_KHR
 #include "j.h"
 #include "windowManager.cpp"
-#include "openvrSession.cpp"
 #include "engine/renderer.cpp"
 #include "engine/renderPass.cpp"
 #include "engine/swapchain.cpp"
@@ -13,10 +12,12 @@
 #include "engine/image.cpp"
 #include "object3d/mesh.cpp"
 
-Mesh m;
-WindowManager* wm;
-OpenVRSession vrSession;
 Renderer renderer;
+vk::SurfaceKHR surface;
+WindowManager wm;
+
+Mesh onlyMesh;
+
 Swapchain swapchain;
 RenderPass renderPass;
 DescriptorSetLayout descriptorSetLayout;
@@ -25,37 +26,31 @@ Pipeline pipeline;
 Shader vertShader;
 Shader fragShader;
 
-vk::SurfaceKHR surface;
 
-std::vector<std::string> intanceExtensions = {
-      VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME,
-      VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME
-    };
+
+
 
 void init(const Napi::CallbackInfo& info) {
   jlog("Started!");
   try{
-    // Init VR
-    auto vrEnabled = false;//= vrSession.init();
 
     // Init window
-    int width = 800;
-    int height = 600;
-    wm = new WindowManager(width,height);
+    wm.init(800,600);
 
-    // Create vulkan instance with extensions from display api's
-    // And with external memory for compositing
-    
-    wm->getRequiredInstanceExtensions(intanceExtensions);
-    if(vrEnabled){
-      vrSession.getVulkanInstanceExtensionsRequired(intanceExtensions);
-    }
-    renderer.init(intanceExtensions);
+    // Create vulkan instance with extensions from display api's and with external memory for compositing
+    std::vector<std::string> intanceExtensions = {
+      VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME,
+      VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME
+    };
+    wm.getRequiredInstanceExtensions(intanceExtensions);
+    renderer.initInstance(intanceExtensions);
 
     // Create surface to render to
-    surface = wm->createSurface(renderer._instance._instance);
+    surface = wm.createSurface(renderer._instance._instance);
     renderer.initDevice(surface);
-    swapchain.init(surface, width, height, renderer._device);
+
+
+    swapchain.init(surface, wm.getFramebufferSize().width, wm.getFramebufferSize().height, renderer._device);
     renderPass.init(renderer._device, swapchain._swapChainImageFormat, renderer._device.findDepthFormat());
     descriptorSetLayout.init(renderer._device);
 
@@ -70,13 +65,13 @@ void init(const Napi::CallbackInfo& info) {
     }
     
     
-    m.init(renderer._device, swapchain._swapChainImages.size());
+    onlyMesh.init(renderer._device, swapchain._swapChainImages.size());
 
     descriptorSetLayout.createDescriptorPool(renderer._device, swapchain._swapChainImages.size());
-    descriptorSetLayout.createDescriptorSets(renderer._device, swapchain._swapChainImages.size(), m._uniformBuffers);
+    descriptorSetLayout.createDescriptorSets(renderer._device, swapchain._swapChainImages.size(), onlyMesh._uniformBuffers);
 
     
-    pipeline.createCommandBuffers(renderer._device, swapchain, renderPass, descriptorSetLayout, m._indices.size(), m._vertexBuffer, m._indexBuffer);
+    pipeline.createCommandBuffers(renderer._device, swapchain, renderPass, descriptorSetLayout, onlyMesh._indices.size(), onlyMesh._vertexBuffer, onlyMesh._indexBuffer);
     renderer._device.createSyncObjects();
 
     
@@ -98,7 +93,7 @@ void init(const Napi::CallbackInfo& info) {
     // renderer.createLogicalDevice(surface);
 
     // // Create swapchain to render with
-    // wm->getFramebufferSize(&width, &height);
+    // wm.getFramebufferSize(&width, &height);
     // renderer.createSwapChain(surface, width, height);
 
     // // setup rendering images and render pass
@@ -131,8 +126,8 @@ void init(const Napi::CallbackInfo& info) {
     // renderer.createSyncObjects();
 
     
-    // while (!wm->shouldClose()) {
-    //     wm->update();
+    // while (!wm.shouldClose()) {
+    //     wm.update();
     //     renderer.drawFrame();
     // }
 
@@ -148,7 +143,7 @@ void init(const Napi::CallbackInfo& info) {
 Napi::Boolean shouldClose(const Napi::CallbackInfo& info) {
   try{
     Napi::Env env = info.Env();
-    return Napi::Boolean::New(env, wm->shouldClose());
+    return Napi::Boolean::New(env, wm.shouldClose());
   }catch (const std::exception& e) {
     jlog("Native code threw an exception:");
     std::cerr << e.what() << std::endl;
@@ -158,9 +153,9 @@ Napi::Boolean shouldClose(const Napi::CallbackInfo& info) {
 
 void render(const Napi::CallbackInfo& info) {
   try{
-    wm->update();
+    wm.update();
     
-    renderer.drawFrame(swapchain, m._uniformBuffersMemory, pipeline);
+    renderer.drawFrame(swapchain, onlyMesh._uniformBuffersMemory, pipeline);
   }catch (const std::exception& e) {
     jlog("Native code threw an exception:");
     std::cerr << e.what() << std::endl;

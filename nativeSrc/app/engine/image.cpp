@@ -30,7 +30,7 @@ class Image {
         _imageView = _device._device.createImageView(viewInfo);
     }
 
-    void createFrameBuffer(Image depthImage, RenderPass _renderPass, int width, int height){
+    void createFrameBuffer(Image depthImage, RenderPass _renderPass, uint32_t width, uint32_t height){
         // create framebuffer
         std::array<VkImageView, 2> attachments = {
             _imageView,

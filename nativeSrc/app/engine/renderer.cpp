@@ -17,7 +17,7 @@ class Renderer {
         
     }
 
-    void init(std::vector<std::string>& instanceExtensions){
+    void initInstance(std::vector<std::string>& instanceExtensions){
         _instance.init(instanceExtensions);
     }
 
@@ -56,7 +56,7 @@ class Renderer {
         vkUnmapMemory(_device._device, _uniformBuffersMemory[currentImage]);
     }
     
-    int _currentFrame = 0;
+    uint32_t _currentFrame = 0;
     void drawFrame(Swapchain& swapchain, std::vector<vk::DeviceMemory>& mem, Pipeline& pipeline) {
         _device._device.waitForFences(_device._inFlightFences[_currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
 

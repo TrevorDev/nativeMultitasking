@@ -1,17 +1,23 @@
 #include <vulkan/vulkan.hpp>
 #include <GLFW/glfw3.h>
 
+struct WindowManagerFrameBufferSize {
+	uint32_t width;
+	uint32_t height;
+};
+
 class WindowManager {
 public:
-	WindowManager(int width, int height) {
+	bool framebufferResized = false;
+	WindowManager() {
+	}
+	void init(uint32_t width, uint32_t height){
 		glfwInit();
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		this->window = glfwCreateWindow(width, height, "3D Multitasking", nullptr, nullptr);
-
 		glfwSetWindowUserPointer(window, this);
 		glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 	}
-	bool framebufferResized = false;
 	vk::SurfaceKHR createSurface(vk::Instance instance){
 		VkSurfaceKHR surface;
 		if (glfwCreateWindowSurface(instance, this->window, nullptr, &surface) != VK_SUCCESS) {
@@ -19,8 +25,10 @@ public:
 		}
 		return vk::SurfaceKHR(surface);
 	}
-	void getFramebufferSize(int* width, int* height) {
-		glfwGetFramebufferSize(this->window, width, height);
+	WindowManagerFrameBufferSize getFramebufferSize() {
+		WindowManagerFrameBufferSize result;
+		glfwGetFramebufferSize(this->window, (int*)&result.width, (int*)&result.height);
+		return result;
 	}
 	void getRequiredInstanceExtensions(std::vector<std::string>& vec){
 		uint32_t glfwExtensionCount = 0;

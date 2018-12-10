@@ -14,7 +14,6 @@ struct SwapChainSupportDetails {
 class Swapchain {
     public:
     vk::SwapchainKHR _swapChain;
-    
     VkFormat _swapChainImageFormat;
     vk::Extent2D _swapChainExtent;
     std::vector<Image> _swapChainImages = {};
@@ -23,13 +22,14 @@ class Swapchain {
     Swapchain(){
         
     }
-    void init(VkSurfaceKHR surface, int width, int height, Device device){
+    void init(VkSurfaceKHR surface, uint32_t width, uint32_t height, Device device){
+        // Get information about features the swapchain supports and choose the ideal settings
         SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device._physicalDevice, surface);
-
         VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
         VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
         VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities, width, height);
 
+        // Set the count of images within  the swapchain
         uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
         if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
             imageCount = swapChainSupport.capabilities.maxImageCount;
@@ -139,7 +139,7 @@ class Swapchain {
         return bestMode;
     }
 
-    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, int width, int height) {
+    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, uint32_t width, uint32_t height) {
         if (capabilities.currentExtent.width != (std::numeric_limits<uint32_t>::max)()) {
             return capabilities.currentExtent;
         } else {

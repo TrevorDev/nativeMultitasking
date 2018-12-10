@@ -49,6 +49,10 @@ class Instance {
         }catch(...){
             jlog("Unable to initialize vulkan");
         }
+
+        for(auto& str : initExtensions){
+            delete str;
+        }
     }
 
     private:
