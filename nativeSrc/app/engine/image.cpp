@@ -31,7 +31,6 @@ class Image {
     }
 
     void createFrameBuffer(Image depthImage, RenderPass _renderPass, uint32_t width, uint32_t height){
-        // create framebuffer
         std::array<VkImageView, 2> attachments = {
             _imageView,
             depthImage._imageView
@@ -47,11 +46,7 @@ class Image {
         framebufferInfo.layers = 1;
 
         _framebuffer = _device._device.createFramebuffer(framebufferInfo);
-        jlog("create fb");
-        // VkFramebuffer fb = &_framebuffer.operator VkFramebuffer;
-        // if(!fb){
-        //     jlog("failed to create framebuffer");
-        // }
+        jlog("created fb");
     }
 
     HANDLE createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) {

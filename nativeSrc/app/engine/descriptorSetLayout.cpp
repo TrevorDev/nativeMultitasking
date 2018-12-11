@@ -11,6 +11,7 @@ class DescriptorSetLayout {
 
     }
     void init(Device device){
+        // Create descriptor layout which contains a uniform buffer
         VkDescriptorSetLayoutBinding uboLayoutBinding = {};
         uboLayoutBinding.binding = 0;
         uboLayoutBinding.descriptorCount = 1;
@@ -18,6 +19,7 @@ class DescriptorSetLayout {
         uboLayoutBinding.pImmutableSamplers = nullptr;
         uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
+        // and a single image sampler
         VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
         samplerLayoutBinding.binding = 1;
         samplerLayoutBinding.descriptorCount = 1;

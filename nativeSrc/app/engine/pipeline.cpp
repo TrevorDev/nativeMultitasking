@@ -52,7 +52,8 @@ class Pipeline {
     Pipeline(){
         
     }
-    void init(Device device, Swapchain swapchain, std::vector<Shader> inputShaderStages, DescriptorSetLayout descriptorSetLayout, RenderPass renderPass){
+    void init(Device device, uint32_t viewportWidth, uint32_t viewportHeight, std::vector<Shader> inputShaderStages, DescriptorSetLayout descriptorSetLayout, RenderPass renderPass){
+        // Convert shaders to config object
         VkPipelineShaderStageCreateInfo* shaderStages = new VkPipelineShaderStageCreateInfo[inputShaderStages.size()];
         auto i = 0;
         for(auto& stage : inputShaderStages){
@@ -60,35 +61,38 @@ class Pipeline {
             i++;
         }
 
+        // Setup vertex shader input
         VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-
         auto bindingDescription = Vertex::getBindingDescription();
         auto attributeDescriptions = Vertex::getAttributeDescriptions();
-
         vertexInputInfo.vertexBindingDescriptionCount = 1;
         vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
         vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
         vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
+        // Input is a triangle list
         VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
         inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
         inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         inputAssembly.primitiveRestartEnable = VK_FALSE;
 
+        // Define viewport that matches the swapchain
+        auto viewPortExtent = vk::Extent2D(viewportWidth, viewportHeight);
         VkViewport viewport = {};
         viewport.x = 0.0f;
         viewport.y = 0.0f;
-        
-        viewport.width = (float) swapchain._swapChainExtent.width;
-        viewport.height = (float) swapchain._swapChainExtent.height;
+        viewport.width = (float) viewPortExtent.width;
+        viewport.height = (float) viewPortExtent.height;
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
 
+        // Scissor which is used to clip rectangles inside the viewport
         VkRect2D scissor = {};
         scissor.offset = {0, 0};
-        scissor.extent = swapchain._swapChainExtent;
+        scissor.extent = viewPortExtent;
 
+        // Viewport state
         VkPipelineViewportStateCreateInfo viewportState = {};
         viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
         viewportState.viewportCount = 1;
@@ -96,6 +100,7 @@ class Pipeline {
         viewportState.scissorCount = 1;
         viewportState.pScissors = &scissor;
 
+        // Define default rasterizer
         VkPipelineRasterizationStateCreateInfo rasterizer = {};
         rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
         rasterizer.depthClampEnable = VK_FALSE;
@@ -106,11 +111,13 @@ class Pipeline {
         rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
         rasterizer.depthBiasEnable = VK_FALSE;
 
+        // Default multisampling
         VkPipelineMultisampleStateCreateInfo multisampling = {};
         multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
         multisampling.sampleShadingEnable = VK_FALSE;
         multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
+        // Use depth/stencil buffer
         VkPipelineDepthStencilStateCreateInfo depthStencil = {};
         depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
         depthStencil.depthTestEnable = VK_TRUE;
@@ -119,10 +126,10 @@ class Pipeline {
         depthStencil.depthBoundsTestEnable = VK_FALSE;
         depthStencil.stencilTestEnable = VK_FALSE;
 
+        // Color alpha blending
         VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
         colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
         colorBlendAttachment.blendEnable = VK_FALSE;
-
         VkPipelineColorBlendStateCreateInfo colorBlending = {};
         colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
         colorBlending.logicOpEnable = VK_FALSE;
@@ -134,12 +141,13 @@ class Pipeline {
         colorBlending.blendConstants[2] = 0.0f;
         colorBlending.blendConstants[3] = 0.0f;
 
+        // Set the descriptorSetLayout on the pipeline
         vk::PipelineLayoutCreateInfo pipelineLayoutInfo = {};
         pipelineLayoutInfo.setLayoutCount = 1;
         pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout._descriptorSetLayout;
-
         _pipelineLayout = device._device.createPipelineLayout(pipelineLayoutInfo);
 
+        // Create the pipeline
         VkGraphicsPipelineCreateInfo pipelineInfo = {};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
         pipelineInfo.stageCount = 2;
@@ -155,11 +163,11 @@ class Pipeline {
         pipelineInfo.renderPass = renderPass._renderPass;
         pipelineInfo.subpass = 0;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-
-        
         vk::PipelineCache x=vk::PipelineCache();
         _graphicsPipeline = device._device.createGraphicsPipeline(x, pipelineInfo, nullptr);
 
+        // Clear shaders after they've been loaded
+        // TODO should this be done here or in the actual shader?
         for(auto& stage : inputShaderStages){
             vkDestroyShaderModule(device._device, stage._shaderModule, nullptr);
         }

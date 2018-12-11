@@ -52,28 +52,33 @@ void init(const Napi::CallbackInfo& info) {
 
     descriptorSetLayout.init(renderer._device);
 
+    // Load in shaders
     vertShader.init(renderer._device, "shaders/vert.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT);
     fragShader.init(renderer._device, "shaders/frag.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT);
 
-    pipeline.init(renderer._device, swapchain, {vertShader, fragShader}, descriptorSetLayout, renderPass);
+    // Creates the pipeline to render color + depth using shaders
+    pipeline.init(renderer._device, swapchain._swapChainExtent.width, swapchain._swapChainExtent.height, {vertShader, fragShader}, descriptorSetLayout, renderPass);
 
+    // Initalize swapcahin images as framebuffers which makes them able to be drawn to
     for(auto& im : swapchain._swapChainImages){
       im.createFrameBuffer(swapchain._depthImage, renderPass, swapchain._swapChainExtent.width, swapchain._swapChainExtent.height);
-      jlog("done img");
     }
     
-    
+    // TODO uniform buffer should be per descriptor pool/set instead of per mesh
     onlyMesh.init(renderer._device, swapchain._swapChainImages.size());
 
+    // Setup materials
+    // TODO move this to material class
     descriptorSetLayout.createDescriptorPool(renderer._device, swapchain._swapChainImages.size());
     descriptorSetLayout.createDescriptorSets(renderer._device, swapchain._swapChainImages.size(), onlyMesh._uniformBuffers);
-
     
+    // Creates command buffer to draw a mesh
+    // TODO this should be per mesh
     pipeline.createCommandBuffers(renderer._device, swapchain, renderPass, descriptorSetLayout, onlyMesh._indices.size(), onlyMesh._vertexBuffer, onlyMesh._indexBuffer);
-    renderer._device.createSyncObjects();
-
     
-    jlog("success");
+    // Create syncing objects to avoid drawing too quickly
+    renderer._device.createSyncObjects();
+    jlog("Bootsup success");
 
   }catch (const std::exception& e) {
     jlog("Native code threw an exception:");
