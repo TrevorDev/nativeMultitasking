@@ -50,6 +50,11 @@ void init(const Napi::CallbackInfo& info) {
     swapchain.init(surface, wm.getFramebufferSize().width, wm.getFramebufferSize().height, renderer._device);
     renderPass.init(renderer._device, swapchain._swapChainImageFormat, renderer._device.findDepthFormat());
 
+    // Initalize swapcahin images as framebuffers which makes them able to be drawn to
+    for(auto& im : swapchain._swapChainImages){
+      im.createFrameBuffer(swapchain._depthImage, renderPass, swapchain._swapChainExtent.width, swapchain._swapChainExtent.height);
+    }
+
     descriptorSetLayout.init(renderer._device);
 
     // Load in shaders
@@ -59,10 +64,7 @@ void init(const Napi::CallbackInfo& info) {
     // Creates the pipeline to render color + depth using shaders
     pipeline.init(renderer._device, swapchain._swapChainExtent.width, swapchain._swapChainExtent.height, {vertShader, fragShader}, descriptorSetLayout, renderPass);
 
-    // Initalize swapcahin images as framebuffers which makes them able to be drawn to
-    for(auto& im : swapchain._swapChainImages){
-      im.createFrameBuffer(swapchain._depthImage, renderPass, swapchain._swapChainExtent.width, swapchain._swapChainExtent.height);
-    }
+    
     
     // TODO uniform buffer should be per descriptor pool/set instead of per mesh
     onlyMesh.init(renderer._device, swapchain._swapChainImages.size());
@@ -78,7 +80,7 @@ void init(const Napi::CallbackInfo& info) {
     
     // Create syncing objects to avoid drawing too quickly
     renderer._device.createSyncObjects();
-    jlog("Bootsup success");
+    jlog("Bootup success");
 
   }catch (const std::exception& e) {
     jlog("Native code threw an exception:");
