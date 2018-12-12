@@ -30,8 +30,7 @@ class Mesh {
         4, 5, 6, 6, 7, 4
     };
 
-    std::vector<vk::Buffer> _uniformBuffers;
-    std::vector<vk::DeviceMemory> _uniformBuffersMemory;
+    
     
     vk::Buffer _vertexBuffer;
     vk::DeviceMemory _vertexBufferMemory;
@@ -42,10 +41,13 @@ class Mesh {
         
     }
 
-    void init(Device device, uint32_t swapChainImageCount){
+    void init(Device& device, Material& material, Swapchain& sc){
         createVertexBuffer(device);
         createIndexBuffer(device);
-        createUniformBuffers(device, swapChainImageCount);
+        
+        // Creates command buffer to draw a mesh
+        // TODO this should be per mesh
+        material.createCommandBuffers(device, sc, _indices.size(), _vertexBuffer, _indexBuffer);
     }
     
     void createVertexBuffer(Device device) {
@@ -86,17 +88,6 @@ class Mesh {
 
         vkDestroyBuffer(device._device, stagingBuffer, nullptr);
         vkFreeMemory(device._device, stagingBufferMemory, nullptr);
-    }
-
-    void createUniformBuffers(Device device, uint32_t swapChainImageCount) {
-        VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-
-        _uniformBuffers.resize(swapChainImageCount);
-        _uniformBuffersMemory.resize(swapChainImageCount);
-
-        for (size_t i = 0; i < swapChainImageCount; i++) {
-            device.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, _uniformBuffers[i], _uniformBuffersMemory[i]);
-        }
     }
 
     private:

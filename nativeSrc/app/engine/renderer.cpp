@@ -5,8 +5,11 @@
 #include "device.cpp"
 #include "../engine/swapchain.cpp"
 #include "../engine/pipeline.cpp"
+#include "../engine/material.cpp"
+
 #include "../engine/glmInc.h"
 #include "object3d/camera.cpp"
+#include "object3d/mesh.cpp"
 
 class Renderer {
     public:
@@ -57,7 +60,7 @@ class Renderer {
     }
     
     uint32_t _currentFrame = 0;
-    void drawFrame(Swapchain& swapchain, std::vector<vk::DeviceMemory>& mem, Pipeline& pipeline) {
+    void drawFrame(Swapchain& swapchain, Mesh& onlyMesh, Material& material) {
         _device._device.waitForFences(_device._inFlightFences[_currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
 
         uint32_t imageIndex;
@@ -70,7 +73,7 @@ class Renderer {
             throw std::runtime_error("failed to acquire swap chain image!");
         }
 
-        updateUniformBuffer(imageIndex, swapchain, mem);
+        updateUniformBuffer(imageIndex, swapchain, material._uniformBuffersMemory);
 
         vk::SubmitInfo submitInfo = {};
 
@@ -80,7 +83,7 @@ class Renderer {
         submitInfo.setPWaitSemaphores(waitSemaphores);
         submitInfo.commandBufferCount = 1;
         submitInfo.setPWaitDstStageMask(waitStages);
-        submitInfo.setPCommandBuffers(&pipeline._commandBuffers[imageIndex]);
+        submitInfo.setPCommandBuffers(&material._commandBuffers[imageIndex]);
 
         vk::Semaphore signalSemaphores[] = {_device._renderFinishedSemaphores[_currentFrame]};
         submitInfo.setPSignalSemaphores(signalSemaphores);

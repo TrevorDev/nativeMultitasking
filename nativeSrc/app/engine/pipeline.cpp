@@ -52,7 +52,7 @@ class Pipeline {
     Pipeline(){
         
     }
-    void init(Device device, uint32_t viewportWidth, uint32_t viewportHeight, std::vector<Shader> inputShaderStages, DescriptorSetLayout descriptorSetLayout, RenderPass renderPass){
+    void init(Device& device, uint32_t viewportWidth, uint32_t viewportHeight, std::vector<Shader> inputShaderStages, DescriptorSetLayout descriptorSetLayout, RenderPass renderPass){
         // Convert shaders to config object
         VkPipelineShaderStageCreateInfo* shaderStages = new VkPipelineShaderStageCreateInfo[inputShaderStages.size()];
         auto i = 0;
@@ -175,62 +175,7 @@ class Pipeline {
         jlog("Pipeline created");
     }
 
-    std::vector<vk::CommandBuffer> _commandBuffers = {};
-    void createCommandBuffers(Device& device, Swapchain& sc, RenderPass& renderPass, DescriptorSetLayout& layout, uint32_t _indicesSize, vk::Buffer& _vertexBuffer, vk::Buffer& _indexBuffer) {
-        _commandBuffers.resize(sc._swapChainImages.size());
-
-        VkCommandBufferAllocateInfo allocInfo = {};
-        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        allocInfo.commandPool = device._commandPool;
-        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandBufferCount = (uint32_t) _commandBuffers.size();
-
-        _commandBuffers = device._device.allocateCommandBuffers(allocInfo);
-
-        for (size_t i = 0; i < _commandBuffers.size(); i++) {
-            VkCommandBufferBeginInfo beginInfo = {};
-            beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-            beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-
-            if (vkBeginCommandBuffer(_commandBuffers[i], &beginInfo) != VK_SUCCESS) {
-                throw std::runtime_error("failed to begin recording command buffer!");
-            }
-
-            VkRenderPassBeginInfo renderPassInfo = {};
-            renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-            renderPassInfo.renderPass = renderPass._renderPass;
-            renderPassInfo.framebuffer = sc._swapChainImages[i]._framebuffer;
-            renderPassInfo.renderArea.offset = {0, 0};
-            renderPassInfo.renderArea.extent = sc._swapChainExtent;
-
-            std::array<VkClearValue, 2> clearValues = {};
-            clearValues[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
-            clearValues[1].depthStencil = {1.0f, 0};
-
-            renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-            renderPassInfo.pClearValues = clearValues.data();
-
-            vkCmdBeginRenderPass(_commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-                vkCmdBindPipeline(_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _graphicsPipeline);
-
-                VkBuffer vertexBuffers[] = {_vertexBuffer};
-                VkDeviceSize offsets[] = {0};
-                vkCmdBindVertexBuffers(_commandBuffers[i], 0, 1, vertexBuffers, offsets);
-
-                vkCmdBindIndexBuffer(_commandBuffers[i], _indexBuffer, 0, VK_INDEX_TYPE_UINT16);
-
-                _commandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics,_pipelineLayout,0, layout._descriptorSets[i], {0});
-
-                vkCmdDrawIndexed(_commandBuffers[i], static_cast<uint32_t>(_indicesSize), 1, 0, 0, 0);
-
-            vkCmdEndRenderPass(_commandBuffers[i]);
-
-            if (vkEndCommandBuffer(_commandBuffers[i]) != VK_SUCCESS) {
-                throw std::runtime_error("failed to record command buffer!");
-            }
-        }
-    }
+    
     private:
     
 };

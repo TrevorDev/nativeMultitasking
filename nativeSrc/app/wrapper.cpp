@@ -6,9 +6,8 @@
 #include "engine/renderer.cpp"
 #include "engine/renderPass.cpp"
 #include "engine/swapchain.cpp"
-#include "engine/descriptorSetLayout.cpp"
-#include "engine/shader.cpp"
-#include "engine/pipeline.cpp"
+
+#include "engine/material.cpp"
 #include "engine/image.cpp"
 #include "object3d/mesh.cpp"
 
@@ -20,15 +19,8 @@ Mesh onlyMesh;
 
 Swapchain swapchain;
 RenderPass renderPass;
-DescriptorSetLayout descriptorSetLayout;
-Pipeline pipeline;
 
-Shader vertShader;
-Shader fragShader;
-
-
-
-
+Material material;
 
 void init(const Napi::CallbackInfo& info) {
   jlog("Started!");
@@ -55,29 +47,11 @@ void init(const Napi::CallbackInfo& info) {
       im.createFrameBuffer(swapchain._depthImage, renderPass, swapchain._swapChainExtent.width, swapchain._swapChainExtent.height);
     }
 
-    descriptorSetLayout.init(renderer._device);
+    // Create a mesh with a standard material
+    // TODO: these shouldnt be dependant on swapchain
+    material.init(renderer._device, renderPass, swapchain);
+    onlyMesh.init(renderer._device, material, swapchain);
 
-    // Load in shaders
-    vertShader.init(renderer._device, "shaders/vert.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT);
-    fragShader.init(renderer._device, "shaders/frag.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT);
-
-    // Creates the pipeline to render color + depth using shaders
-    pipeline.init(renderer._device, swapchain._swapChainExtent.width, swapchain._swapChainExtent.height, {vertShader, fragShader}, descriptorSetLayout, renderPass);
-
-    
-    
-    // TODO uniform buffer should be per descriptor pool/set instead of per mesh
-    onlyMesh.init(renderer._device, swapchain._swapChainImages.size());
-
-    // Setup materials
-    // TODO move this to material class
-    descriptorSetLayout.createDescriptorPool(renderer._device, swapchain._swapChainImages.size());
-    descriptorSetLayout.createDescriptorSets(renderer._device, swapchain._swapChainImages.size(), onlyMesh._uniformBuffers);
-    
-    // Creates command buffer to draw a mesh
-    // TODO this should be per mesh
-    pipeline.createCommandBuffers(renderer._device, swapchain, renderPass, descriptorSetLayout, onlyMesh._indices.size(), onlyMesh._vertexBuffer, onlyMesh._indexBuffer);
-    
     // Create syncing objects to avoid drawing too quickly
     renderer._device.createSyncObjects();
     jlog("Bootup success");
@@ -104,7 +78,8 @@ void render(const Napi::CallbackInfo& info) {
   try{
     wm.update();
     
-    renderer.drawFrame(swapchain, onlyMesh._uniformBuffersMemory, pipeline);
+    // TODO should get material from the mesh
+    renderer.drawFrame(swapchain, onlyMesh, material);
   }catch (const std::exception& e) {
     jlog("Native code threw an exception:");
     std::cerr << e.what() << std::endl;
