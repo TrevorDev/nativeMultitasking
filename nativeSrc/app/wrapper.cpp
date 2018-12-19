@@ -50,7 +50,7 @@ void init(const Napi::CallbackInfo& info) {
     // Create a mesh with a standard material
     // TODO: these shouldnt be dependant on swapchain
     material.init(renderer._device, renderPass, swapchain);
-    onlyMesh.init(renderer._device, material, swapchain);
+    onlyMesh.init(renderer._device, &material, swapchain);
 
     // Create syncing objects to avoid drawing too quickly
     renderer._device.createSyncObjects();
@@ -78,8 +78,7 @@ void render(const Napi::CallbackInfo& info) {
   try{
     wm.update();
     
-    // TODO should get material from the mesh
-    renderer.drawFrame(swapchain, onlyMesh, material);
+    renderer.drawFrame(swapchain, onlyMesh);
   }catch (const std::exception& e) {
     jlog("Native code threw an exception:");
     std::cerr << e.what() << std::endl;

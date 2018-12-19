@@ -60,7 +60,7 @@ class Renderer {
     }
     
     uint32_t _currentFrame = 0;
-    void drawFrame(Swapchain& swapchain, Mesh& onlyMesh, Material& material) {
+    void drawFrame(Swapchain& swapchain, Mesh& onlyMesh) {
         _device._device.waitForFences(_device._inFlightFences[_currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
 
         uint32_t imageIndex;
@@ -73,7 +73,7 @@ class Renderer {
             throw std::runtime_error("failed to acquire swap chain image!");
         }
 
-        updateUniformBuffer(imageIndex, swapchain, material._uniformBuffersMemory);
+        updateUniformBuffer(imageIndex, swapchain, onlyMesh._materialRef->_uniformBuffersMemory);
 
         vk::SubmitInfo submitInfo = {};
 
@@ -83,7 +83,7 @@ class Renderer {
         submitInfo.setPWaitSemaphores(waitSemaphores);
         submitInfo.commandBufferCount = 1;
         submitInfo.setPWaitDstStageMask(waitStages);
-        submitInfo.setPCommandBuffers(&material._commandBuffers[imageIndex]);
+        submitInfo.setPCommandBuffers(&onlyMesh._commandBuffers[imageIndex]);
 
         vk::Semaphore signalSemaphores[] = {_device._renderFinishedSemaphores[_currentFrame]};
         submitInfo.setPSignalSemaphores(signalSemaphores);

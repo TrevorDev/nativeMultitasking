@@ -37,17 +37,19 @@ class Mesh {
     vk::Buffer _indexBuffer;
     vk::DeviceMemory _indexBufferMemory;
 
+    Material* _materialRef;
     Mesh(){
         
     }
 
-    void init(Device& device, Material& material, Swapchain& sc){
+    std::vector<vk::CommandBuffer> _commandBuffers = {};
+    void init(Device& device, Material* material, Swapchain& sc){
         createVertexBuffer(device);
         createIndexBuffer(device);
         
+        _materialRef = material;
         // Creates command buffer to draw a mesh
-        // TODO this should be per mesh
-        material.createCommandBuffers(device, sc, _indices.size(), _vertexBuffer, _indexBuffer);
+        _commandBuffers = _materialRef->createCommandBuffers(device, sc, _indices.size(), _vertexBuffer, _indexBuffer);
     }
     
     void createVertexBuffer(Device device) {

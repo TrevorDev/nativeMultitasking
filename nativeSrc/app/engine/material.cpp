@@ -58,24 +58,25 @@ class Material {
         }
     }
 
-    std::vector<vk::CommandBuffer> _commandBuffers = {};
-    void createCommandBuffers(Device& device, Swapchain& sc, uint32_t _indicesSize, vk::Buffer& _vertexBuffer, vk::Buffer& _indexBuffer) {
-        _commandBuffers.resize(sc._swapChainImages.size());
+    
+    std::vector<vk::CommandBuffer> createCommandBuffers(Device& device, Swapchain& sc, uint32_t _indicesSize, vk::Buffer& _vertexBuffer, vk::Buffer& _indexBuffer) {
+        std::vector<vk::CommandBuffer> commandBuffers = {};
+        commandBuffers.resize(sc._swapChainImages.size());
 
         VkCommandBufferAllocateInfo allocInfo = {};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.commandPool = device._commandPool;
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandBufferCount = (uint32_t) _commandBuffers.size();
+        allocInfo.commandBufferCount = (uint32_t) commandBuffers.size();
 
-        _commandBuffers = device._device.allocateCommandBuffers(allocInfo);
+        commandBuffers = device._device.allocateCommandBuffers(allocInfo);
 
-        for (size_t i = 0; i < _commandBuffers.size(); i++) {
+        for (size_t i = 0; i < commandBuffers.size(); i++) {
             VkCommandBufferBeginInfo beginInfo = {};
             beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
             beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
 
-            if (vkBeginCommandBuffer(_commandBuffers[i], &beginInfo) != VK_SUCCESS) {
+            if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS) {
                 throw std::runtime_error("failed to begin recording command buffer!");
             }
 
@@ -93,26 +94,27 @@ class Material {
             renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
             renderPassInfo.pClearValues = clearValues.data();
 
-            vkCmdBeginRenderPass(_commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+            vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-                vkCmdBindPipeline(_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline._graphicsPipeline);
+                vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline._graphicsPipeline);
 
                 VkBuffer vertexBuffers[] = {_vertexBuffer};
                 VkDeviceSize offsets[] = {0};
-                vkCmdBindVertexBuffers(_commandBuffers[i], 0, 1, vertexBuffers, offsets);
+                vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
 
-                vkCmdBindIndexBuffer(_commandBuffers[i], _indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+                vkCmdBindIndexBuffer(commandBuffers[i], _indexBuffer, 0, VK_INDEX_TYPE_UINT16);
 
-                _commandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics,pipeline._pipelineLayout,0, descriptorSetLayout._descriptorSets[i], {0});
+                commandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics,pipeline._pipelineLayout,0, descriptorSetLayout._descriptorSets[i], {0});
 
-                vkCmdDrawIndexed(_commandBuffers[i], static_cast<uint32_t>(_indicesSize), 1, 0, 0, 0);
+                vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(_indicesSize), 1, 0, 0, 0);
 
-            vkCmdEndRenderPass(_commandBuffers[i]);
+            vkCmdEndRenderPass(commandBuffers[i]);
 
-            if (vkEndCommandBuffer(_commandBuffers[i]) != VK_SUCCESS) {
+            if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS) {
                 throw std::runtime_error("failed to record command buffer!");
             }
         }
+        return commandBuffers;
     }
     private:
     
