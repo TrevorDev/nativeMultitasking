@@ -134,6 +134,128 @@ class Matrix4{
         result.m[3][2] = position.z;
     }
 
+    void static InvertToRef(Matrix4& input, Matrix4& result){
+        float m00 = input.m[0][0];
+        float m01 = input.m[0][1];
+        float m02 = input.m[0][2];
+        float m03 = input.m[0][3];
+        float m10 = input.m[1][0];
+        float m11 = input.m[1][1];
+        float m12 = input.m[1][2];
+        float m13 = input.m[1][3];
+        float m20 = input.m[2][0];
+        float m21 = input.m[2][1];
+        float m22 = input.m[2][2];
+        float m23 = input.m[2][3];
+        float m30 = input.m[3][0];
+        float m31 = input.m[3][1];
+        float m32 = input.m[3][2];
+        float m33 = input.m[3][3];
+        // https://en.wikipedia.org/wiki/Laplace_expansion
+        // to compute the deterrminant of a 4x4 Matrix we compute the cofactors of any row or column,
+        // then we multiply each Cofactor by its corresponding matrix value and sum them all to get the determinant
+        // Cofactor(i, j) = sign(i,j) * det(Minor(i, j))
+        // where
+        //  - sign(i,j) = (i+j) % 2 === 0 ? 1 : -1
+        //  - Minor(i, j) is the 3x3 matrix we get by removing row i and column j from current Matrix
+        //
+        // Here we do that for the 1st row.
+
+        float det_22_33 = m22 * m33 - m32 * m23;
+        float det_21_33 = m21 * m33 - m31 * m23;
+        float det_21_32 = m21 * m32 - m31 * m22;
+        float det_20_33 = m20 * m33 - m30 * m23;
+        float det_20_32 = m20 * m32 - m22 * m30;
+        float det_20_31 = m20 * m31 - m30 * m21;
+        float cofact_00 = +(m11 * det_22_33 - m12 * det_21_33 + m13 * det_21_32);
+        float cofact_01 = -(m10 * det_22_33 - m12 * det_20_33 + m13 * det_20_32);
+        float cofact_02 = +(m10 * det_21_33 - m11 * det_20_33 + m13 * det_20_31);
+        float cofact_03 = -(m10 * det_21_32 - m11 * det_20_32 + m12 * det_20_31);
+
+        float det = m00 * cofact_00 + m01 * cofact_01 + m02 * cofact_02 + m03 * cofact_03;
+        
+        float det_12_33 = m12 * m33 - m32 * m13;
+        float det_11_33 = m11 * m33 - m31 * m13;
+        float det_11_32 = m11 * m32 - m31 * m12;
+        float det_10_33 = m10 * m33 - m30 * m13;
+        float det_10_32 = m10 * m32 - m30 * m12;
+        float det_10_31 = m10 * m31 - m30 * m11;
+        float det_12_23 = m12 * m23 - m22 * m13;
+        float det_11_23 = m11 * m23 - m21 * m13;
+        float det_11_22 = m11 * m22 - m21 * m12;
+        float det_10_23 = m10 * m23 - m20 * m13;
+        float det_10_22 = m10 * m22 - m20 * m12;
+        float det_10_21 = m10 * m21 - m20 * m11;
+
+        float cofact_10 = -(m01 * det_22_33 - m02 * det_21_33 + m03 * det_21_32);
+        float cofact_11 = +(m00 * det_22_33 - m02 * det_20_33 + m03 * det_20_32);
+        float cofact_12 = -(m00 * det_21_33 - m01 * det_20_33 + m03 * det_20_31);
+        float cofact_13 = +(m00 * det_21_32 - m01 * det_20_32 + m02 * det_20_31);
+
+        float cofact_20 = +(m01 * det_12_33 - m02 * det_11_33 + m03 * det_11_32);
+        float cofact_21 = -(m00 * det_12_33 - m02 * det_10_33 + m03 * det_10_32);
+        float cofact_22 = +(m00 * det_11_33 - m01 * det_10_33 + m03 * det_10_31);
+        float cofact_23 = -(m00 * det_11_32 - m01 * det_10_32 + m02 * det_10_31);
+
+        float cofact_30 = -(m01 * det_12_23 - m02 * det_11_23 + m03 * det_11_22);
+        float cofact_31 = +(m00 * det_12_23 - m02 * det_10_23 + m03 * det_10_22);
+        float cofact_32 = -(m00 * det_11_23 - m01 * det_10_23 + m03 * det_10_21);
+        float cofact_33 = +(m00 * det_11_22 - m01 * det_10_22 + m02 * det_10_21);
+
+        if(det == 0){
+            jlog("bad det");
+            return;
+        }
+
+        Matrix4::FromValuesToRef(
+                cofact_00 / det, cofact_10 / det, cofact_20 / det, cofact_30 / det,
+                cofact_01 / det, cofact_11 / det, cofact_21 / det, cofact_31 / det,
+                cofact_02 / det, cofact_12 / det, cofact_22 / det, cofact_32 / det,
+                cofact_03 / det, cofact_13 / det, cofact_23 / det, cofact_33 / det,
+                result
+        );
+    }
+
+    float determinant() {
+        float m00 = m[0][0];
+        float m01 = m[0][1];
+        float m02 = m[0][2];
+        float m03 = m[0][3];
+        float m10 = m[1][0];
+        float m11 = m[1][1];
+        float m12 = m[1][2];
+        float m13 = m[1][3];
+        float m20 = m[2][0];
+        float m21 = m[2][1];
+        float m22 = m[2][2];
+        float m23 = m[2][3];
+        float m30 = m[3][0];
+        float m31 = m[3][1];
+        float m32 = m[3][2];
+        float m33 = m[3][3];
+        // https://en.wikipedia.org/wiki/Laplace_expansion
+        // to compute the deterrminant of a 4x4 Matrix we compute the cofactors of any row or column,
+        // then we multiply each Cofactor by its corresponding matrix value and sum them all to get the determinant
+        // Cofactor(i, j) = sign(i,j) * det(Minor(i, j))
+        // where
+        //  - sign(i,j) = (i+j) % 2 === 0 ? 1 : -1
+        //  - Minor(i, j) is the 3x3 matrix we get by removing row i and column j from current Matrix
+        //
+        // Here we do that for the 1st row.
+
+        float det_22_33 = m22 * m33 - m32 * m23;
+        float det_21_33 = m21 * m33 - m31 * m23;
+        float det_21_32 = m21 * m32 - m31 * m22;
+        float det_20_33 = m20 * m33 - m30 * m23;
+        float det_20_32 = m20 * m32 - m22 * m30;
+        float det_20_31 = m20 * m31 - m30 * m21;
+        float cofact_00 = +(m11 * det_22_33 - m12 * det_21_33 + m13 * det_21_32);
+        float cofact_01 = -(m10 * det_22_33 - m12 * det_20_33 + m13 * det_20_32);
+        float cofact_02 = +(m10 * det_21_33 - m11 * det_20_33 + m13 * det_20_31);
+        float cofact_03 = -(m10 * det_21_32 - m11 * det_20_32 + m12 * det_20_31);
+        return m00 * cofact_00 + m01 * cofact_01 + m02 * cofact_02 + m03 * cofact_03;
+    }
+
     private:
         static Matrix4 TmpMatrix1;
         static Matrix4 TmpMatrix2;

@@ -35,17 +35,21 @@ class Renderer {
         float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
         Camera c;
-        c.position.z = -3;
-        c.position.y = 0.4f;
-        c.position.x = time;
+        c.position.z = 3;
+        c.position.y = 0.5f;
+        //c.position.x = time;
+        //Quaternion::FromEuler(time,0,0, c.rotation);
         c.computeWorldMatrix();
+        c.computeViewMatrix();
+
+        
 
 
         UniformBufferObject ubo = {};
         
-        ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ubo.view = glm::make_mat4((float*)(c._worldMatrix.m));  //glm::lookAt(glm::vec3(0.0f, 0.0, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ubo.proj = glm::perspective(glm::radians(45.0f), swapchain._swapChainExtent.width / (float) swapchain._swapChainExtent.height, 0.1f, 10.0f);
+        ubo.model = glm::mat4(1.0f);//glm::rotate(glm::mat4(1.0f), time * glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        ubo.view = glm::make_mat4((float*)(c._viewMatrix.m));  //glm::lookAt(glm::vec3(0.0f, 0.0, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        ubo.proj = glm::perspective(c.projectionAngleRad, swapchain._swapChainExtent.width / (float) swapchain._swapChainExtent.height, c.nearClip, c.farClip);
         ubo.proj[1][1] *= -1;
 
         void* data;
