@@ -36,14 +36,9 @@ class Renderer {
 
         Camera c;
         c.position.z = -3;
+        c.position.y = 0.4f;
+        c.position.x = time;
         c.computeWorldMatrix();
-        
-        float x[] = {
-        1,0,0,0,
-        0,1,0,0,
-        0,0,1,0,
-        0,0,-3,1
-        };
 
 
         UniformBufferObject ubo = {};
