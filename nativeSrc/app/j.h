@@ -12,6 +12,9 @@ void jlog(std::string obj) {
 void jlog(int obj) {
 	std::cout << obj << std::endl;
 }
+void jlog(unsigned int obj) {
+	std::cout << obj << std::endl;
+}
 void jlog(float obj) {
 	std::cout << obj << std::endl;
 }

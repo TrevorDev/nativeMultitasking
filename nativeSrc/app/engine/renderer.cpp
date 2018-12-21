@@ -28,28 +28,18 @@ class Renderer {
         _device.init(surface, _instance._instance.enumeratePhysicalDevices());
     }
 
-    void updateUniformBuffer(uint32_t currentImage, Swapchain& swapchain, std::vector<vk::DeviceMemory>& _uniformBuffersMemory) {
+    void updateUniformBuffer(uint32_t currentImage, Swapchain& swapchain, Camera cam, std::vector<vk::DeviceMemory>& _uniformBuffersMemory) {
         static auto startTime = std::chrono::high_resolution_clock::now();
 
         auto currentTime = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
-        Camera c;
-        c.position.z = 3;
-        c.position.y = 0.5f;
-        //c.position.x = time;
-        //Quaternion::FromEuler(time,0,0, c.rotation);
-        c.computeWorldMatrix();
-        c.computeViewMatrix();
-
-        
-
 
         UniformBufferObject ubo = {};
         
         ubo.model = glm::mat4(1.0f);//glm::rotate(glm::mat4(1.0f), time * glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ubo.view = glm::make_mat4((float*)(c._viewMatrix.m));  //glm::lookAt(glm::vec3(0.0f, 0.0, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ubo.proj = glm::perspective(c.projectionAngleRad, swapchain._swapChainExtent.width / (float) swapchain._swapChainExtent.height, c.nearClip, c.farClip);
+        ubo.view = glm::make_mat4((float*)(cam._viewMatrix.m));  //glm::lookAt(glm::vec3(0.0f, 0.0, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        ubo.proj = glm::perspective(cam.projectionAngleRad, swapchain._swapChainExtent.width / (float) swapchain._swapChainExtent.height, cam.nearClip, cam.farClip);
         ubo.proj[1][1] *= -1;
 
         void* data;
@@ -59,7 +49,7 @@ class Renderer {
     }
     
     uint32_t _currentFrame = 0;
-    void drawFrame(Swapchain& swapchain, Mesh& onlyMesh) {
+    void drawFrame(Swapchain& swapchain, Camera& cam, Mesh& onlyMesh) {
         _device._device.waitForFences(_device._inFlightFences[_currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
 
         uint32_t imageIndex;
@@ -72,7 +62,7 @@ class Renderer {
             throw std::runtime_error("failed to acquire swap chain image!");
         }
 
-        updateUniformBuffer(imageIndex, swapchain, onlyMesh._materialRef->_uniformBuffersMemory);
+        updateUniformBuffer(imageIndex, swapchain, cam, onlyMesh._materialRef->_uniformBuffersMemory);
 
         vk::SubmitInfo submitInfo = {};
 

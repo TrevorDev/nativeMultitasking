@@ -1,6 +1,8 @@
 #include <vulkan/vulkan.hpp>
 #include <GLFW/glfw3.h>
 
+
+
 struct WindowManagerFrameBufferSize {
 	uint32_t width;
 	uint32_t height;
@@ -8,6 +10,7 @@ struct WindowManagerFrameBufferSize {
 
 class WindowManager {
 public:
+	std::vector<bool> keys = {};
 	bool framebufferResized = false;
 	WindowManager() {
 	}
@@ -17,6 +20,20 @@ public:
 		this->window = glfwCreateWindow(width, height, "3D Multitasking", nullptr, nullptr);
 		glfwSetWindowUserPointer(window, this);
 		glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
+		// glfwSetCharCallback(window, &(this->character_callback));
+		glfwSetWindowUserPointer(this->window, this);
+		
+		this->keys.resize(400);
+		for(auto i = 0;i<400;i++){
+			keys[i] = false;
+		}
+		GLFWkeyfun func = [](GLFWwindow* w, int key, int scancode, int action, int mods)
+		{
+			WindowManager* t = static_cast<WindowManager*>(glfwGetWindowUserPointer(w));
+			t->keys[key] = (action) ? true : false;
+			//jlog(key);
+		};
+		glfwSetKeyCallback(window, func);
 	}
 	vk::SurfaceKHR createSurface(vk::Instance& instance){
 		VkSurfaceKHR surface;
@@ -44,10 +61,23 @@ public:
 	void update() {
 		glfwPollEvents();
 	}
+
+	
 private:
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
 		auto app = reinterpret_cast<WindowManager*>(glfwGetWindowUserPointer(window));
 		app->framebufferResized = true;
+	}
+
+	static void character_callback(GLFWwindow* window, unsigned int codepoint)
+	{
+		//jlog(codepoint);
+	}
+	//typedef void (*GLFWkeyfun)(GLFWwindow *, int, int, int, int)
+	void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+	{
+		//keys[key] = action == GLFW_KEY_DOWN ? true : false;
+		//jlog(key);
 	}
 	GLFWwindow * window;
 };

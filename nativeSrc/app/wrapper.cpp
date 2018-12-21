@@ -10,11 +10,13 @@
 #include "engine/material.cpp"
 #include "engine/image.cpp"
 #include "object3d/mesh.cpp"
+#include "object3d/camera.cpp"
 
 Renderer renderer;
 vk::SurfaceKHR surface;
 WindowManager wm;
 
+Camera cam;
 Mesh onlyMesh;
 
 Swapchain swapchain;
@@ -25,6 +27,9 @@ Material material;
 void init(const Napi::CallbackInfo& info) {
   jlog("Started!");
   try{
+    cam.position.z = 3;
+    cam.position.y = 0.5f;
+
     wm.init(800,600);
     // Create vulkan instance with extensions from display api's and with external memory for compositing
     std::vector<std::string> intanceExtensions = {
@@ -77,8 +82,25 @@ Napi::Boolean shouldClose(const Napi::CallbackInfo& info) {
 void render(const Napi::CallbackInfo& info) {
   try{
     wm.update();
-    
-    renderer.drawFrame(swapchain, onlyMesh);
+    if(wm.keys[262]){
+      // Right
+      cam.position.x += 0.01;
+    }
+    if(wm.keys[263]){
+      // Left
+      cam.position.x -= 0.01;
+    }
+    if(wm.keys[264]){
+      // Down
+      cam.position.z += 0.01;
+    }
+    if(wm.keys[265]){
+      // Up
+      cam.position.z -= 0.01;
+    }
+    cam.computeWorldMatrix();
+    cam.computeViewMatrix();
+    renderer.drawFrame(swapchain,cam, onlyMesh);
   }catch (const std::exception& e) {
     jlog("Native code threw an exception:");
     std::cerr << e.what() << std::endl;
