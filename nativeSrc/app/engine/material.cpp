@@ -20,6 +20,9 @@ class Material {
     std::vector<vk::Buffer> _uniformBuffers;
     std::vector<vk::DeviceMemory> _uniformBuffersMemory;
 
+    std::vector<vk::Buffer> _pointLightsUniformBuffers;
+    std::vector<vk::DeviceMemory> _pointLightsUniformBuffersMemory;
+
     Material(){
         
     }
@@ -41,7 +44,8 @@ class Material {
         // Setup materials
         // TODO move this to material class
         descriptorSetLayout.createDescriptorPool(device, swapchain._swapChainImages.size());
-        descriptorSetLayout.createDescriptorSets(device, swapchain._swapChainImages.size(), _uniformBuffers);
+        
+        descriptorSetLayout.createDescriptorSets(device, swapchain._swapChainImages.size(), _uniformBuffers, _pointLightsUniformBuffers);
         
         
     }
@@ -55,6 +59,16 @@ class Material {
 
         for (size_t i = 0; i < swapChainImageCount; i++) {
             device.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, _uniformBuffers[i], _uniformBuffersMemory[i]);
+        }
+
+        // Point lights
+        VkDeviceSize lightBufferSize = sizeof(PointLightsUniformBufferObject);
+
+        _pointLightsUniformBuffers.resize(swapChainImageCount);
+        _pointLightsUniformBuffersMemory.resize(swapChainImageCount);
+
+        for (size_t i = 0; i < swapChainImageCount; i++) {
+            device.createBuffer(lightBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, _pointLightsUniformBuffers[i], _pointLightsUniformBuffersMemory[i]);
         }
     }
 

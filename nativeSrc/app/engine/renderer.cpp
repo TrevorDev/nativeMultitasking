@@ -10,6 +10,7 @@
 #include "../engine/glmInc.h"
 #include "object3d/camera.cpp"
 #include "object3d/mesh.cpp"
+#include "object3d/pointLight.cpp"
 
 class Renderer {
     public:
@@ -28,12 +29,11 @@ class Renderer {
         _device.init(surface, _instance._instance.enumeratePhysicalDevices());
     }
 
-    void updateUniformBuffer(uint32_t currentImage, Swapchain& swapchain, Camera cam, std::vector<vk::DeviceMemory>& _uniformBuffersMemory) {
+    void updateUniformBuffer(uint32_t currentImage, Swapchain& swapchain, Camera cam, std::vector<vk::DeviceMemory>& _uniformBuffersMemory, std::vector<vk::DeviceMemory>& _pointLightsUniformBuffersMemory) {
         static auto startTime = std::chrono::high_resolution_clock::now();
 
         auto currentTime = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
 
         UniformBufferObject ubo = {};
         
@@ -46,6 +46,17 @@ class Renderer {
         vkMapMemory(_device._device, _uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data);
             memcpy(data, &ubo, sizeof(ubo));
         vkUnmapMemory(_device._device, _uniformBuffersMemory[currentImage]);
+
+        // TODO: create this in app code
+        PointLight p;
+        PointLightsUniformBufferObject pubo = {};
+        pubo.lights[0].position = glm::vec4(0,0,0,0);
+        pubo.lights[0].color = glm::vec3(1,0,0);
+        pubo.lights[0].radius = 0.0f;
+        void* dataLight;
+        vkMapMemory(_device._device, _pointLightsUniformBuffersMemory[currentImage], 0, sizeof(pubo), 0, &dataLight);
+            memcpy(dataLight, &pubo, sizeof(pubo));
+        vkUnmapMemory(_device._device, _pointLightsUniformBuffersMemory[currentImage]);
     }
     
     uint32_t _currentFrame = 0;
@@ -62,7 +73,7 @@ class Renderer {
             throw std::runtime_error("failed to acquire swap chain image!");
         }
 
-        updateUniformBuffer(imageIndex, swapchain, cam, onlyMesh._materialRef->_uniformBuffersMemory);
+        updateUniformBuffer(imageIndex, swapchain, cam, onlyMesh._materialRef->_uniformBuffersMemory, onlyMesh._materialRef->_pointLightsUniformBuffersMemory);
 
         vk::SubmitInfo submitInfo = {};
 

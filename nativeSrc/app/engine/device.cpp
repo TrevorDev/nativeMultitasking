@@ -3,11 +3,9 @@
 #include "j.h"
 #include "vulkanInc.h"
 #include "../engine/glmInc.h"
-//#include "../object3d/mesh.cpp"
-//#include "descriptorSetLayout.cpp"
 
 int MAX_FRAMES_IN_FLIGHT = 2;
-
+const int NUM_LIGHTS = 1;
 struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
     std::optional<uint32_t> presentFamily;
@@ -21,6 +19,18 @@ struct UniformBufferObject {
     glm::mat4 model;
     glm::mat4 view;
     glm::mat4 proj;
+};
+
+struct SinglePointLightUniformBufferObject {
+    // TODO: Figure out why this must be vector4
+    // when i had this as vector3 i was getting buffer offset issues
+    glm::vec4 position;
+    glm::vec3 color;
+    float radius;
+};
+
+struct PointLightsUniformBufferObject{
+    SinglePointLightUniformBufferObject lights[NUM_LIGHTS];
 };
 
 class Device {

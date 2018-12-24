@@ -19,15 +19,23 @@ class DescriptorSetLayout {
         uboLayoutBinding.pImmutableSamplers = nullptr;
         uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-        // and a single image sampler
-        VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
-        samplerLayoutBinding.binding = 1;
-        samplerLayoutBinding.descriptorCount = 1;
-        samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        samplerLayoutBinding.pImmutableSamplers = nullptr;
-        samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        // point lights
+        VkDescriptorSetLayoutBinding pointLightsUboLayoutBinding = {};
+        pointLightsUboLayoutBinding.binding = 1;
+        pointLightsUboLayoutBinding.descriptorCount = 1;
+        pointLightsUboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        pointLightsUboLayoutBinding.pImmutableSamplers = nullptr;
+        pointLightsUboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-        std::array<VkDescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding, samplerLayoutBinding};
+        // and a single image sampler
+        // VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
+        // samplerLayoutBinding.binding = 1;
+        // samplerLayoutBinding.descriptorCount = 1;
+        // samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        // samplerLayoutBinding.pImmutableSamplers = nullptr;
+        // samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        std::array<VkDescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding, pointLightsUboLayoutBinding};
         VkDescriptorSetLayoutCreateInfo layoutInfo = {};
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -42,8 +50,10 @@ class DescriptorSetLayout {
         std::array<VkDescriptorPoolSize, 2> poolSizes = {};
         poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         poolSizes[0].descriptorCount = static_cast<uint32_t>(swapChainImageCount);
-        poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        poolSizes[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         poolSizes[1].descriptorCount = static_cast<uint32_t>(swapChainImageCount);
+        // poolSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        // poolSizes[2].descriptorCount = static_cast<uint32_t>(swapChainImageCount);
 
         VkDescriptorPoolCreateInfo poolInfo = {};
         poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -54,7 +64,7 @@ class DescriptorSetLayout {
         _descriptorPool = device._device.createDescriptorPool(poolInfo);
     }
 
-    void createDescriptorSets(Device device, uint32_t swapChainImageCount, std::vector<vk::Buffer> _uniformBuffers) {
+    void createDescriptorSets(Device device, uint32_t swapChainImageCount, std::vector<vk::Buffer> _uniformBuffers, std::vector<vk::Buffer> _pointLightsUniformBuffers) {
         std::vector<VkDescriptorSetLayout> layouts(swapChainImageCount, _descriptorSetLayout);
         VkDescriptorSetAllocateInfo allocInfo = {};
         allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -71,12 +81,17 @@ class DescriptorSetLayout {
             bufferInfo.offset = 0;
             bufferInfo.range = sizeof(UniformBufferObject);
 
+            VkDescriptorBufferInfo pointLightsBufferInfo = {};
+            pointLightsBufferInfo.buffer = _pointLightsUniformBuffers[i];
+            pointLightsBufferInfo.offset = 0;
+            pointLightsBufferInfo.range = sizeof(PointLightsUniformBufferObject);
+
             // VkDescriptorImageInfo imageInfo = {};
             // imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             // imageInfo.imageView = _textureImageView;
             // imageInfo.sampler = _textureSampler;
 
-            std::array<VkWriteDescriptorSet, 1> descriptorWrites = {};
+            std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
 
             descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             descriptorWrites[0].dstSet = _descriptorSets[i];
@@ -85,6 +100,14 @@ class DescriptorSetLayout {
             descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             descriptorWrites[0].descriptorCount = 1;
             descriptorWrites[0].pBufferInfo = &bufferInfo;
+
+            descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[1].dstSet = _descriptorSets[i];
+            descriptorWrites[1].dstBinding = 1;
+            descriptorWrites[1].dstArrayElement = 0;
+            descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptorWrites[1].descriptorCount = 1;
+            descriptorWrites[1].pBufferInfo = &pointLightsBufferInfo;
 
             // descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             // descriptorWrites[1].dstSet = _descriptorSets[i];

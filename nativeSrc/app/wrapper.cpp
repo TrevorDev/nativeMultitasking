@@ -11,6 +11,7 @@
 #include "engine/image.cpp"
 #include "object3d/mesh.cpp"
 #include "object3d/camera.cpp"
+#include "object3d/pointLight.cpp"
 
 Renderer renderer;
 vk::SurfaceKHR surface;
@@ -84,19 +85,19 @@ void render(const Napi::CallbackInfo& info) {
     wm.update();
     if(wm.keys[262]){
       // Right
-      cam.position.x += 0.01;
+      cam.position.x += 0.01f;
     }
     if(wm.keys[263]){
       // Left
-      cam.position.x -= 0.01;
+      cam.position.x -= 0.01f;
     }
     if(wm.keys[264]){
       // Down
-      cam.position.z += 0.01;
+      cam.position.z += 0.01f;
     }
     if(wm.keys[265]){
       // Up
-      cam.position.z -= 0.01;
+      cam.position.z -= 0.01f;
     }
     cam.computeWorldMatrix();
     cam.computeViewMatrix();
