@@ -18,6 +18,9 @@ void jlog(unsigned int obj) {
 void jlog(float obj) {
 	std::cout << obj << std::endl;
 }
+void jlog(double obj) {
+	std::cout << obj << std::endl;
+}
 void jlog(unsigned long long obj) {
 	std::cout << obj << std::endl;
 }

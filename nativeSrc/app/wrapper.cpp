@@ -80,6 +80,8 @@ Napi::Boolean shouldClose(const Napi::CallbackInfo& info) {
   }
 }
 
+float camRotX = 0;
+float camRotY = 0;
 void render(const Napi::CallbackInfo& info) {
   try{
     wm.update();
@@ -99,6 +101,14 @@ void render(const Napi::CallbackInfo& info) {
       // Up
       cam.position.z -= 0.01f;
     }
+
+    if(wm.mouseDown){
+      camRotY += -wm.lastCursorPosDifX/1000.0;
+      camRotX += -wm.lastCursorPosDifY/1000.0;
+    }
+
+    Quaternion::FromEuler(camRotX,camRotY,0, cam.rotation);
+
     cam.computeWorldMatrix();
     cam.computeViewMatrix();
     renderer.drawFrame(swapchain,cam, onlyMesh);
