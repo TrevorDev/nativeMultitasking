@@ -12,6 +12,14 @@ class WindowManager {
 public:
 	std::vector<bool> keys = {};
 	bool framebufferResized = false;
+
+	double lastCursorPosDifX = 0;
+	double lastCursorPosDifY = 0;
+	double lastCursorPosX = 0;
+	double lastCursorPosY = 0;
+
+	bool mouseDown = false;
+
 	WindowManager() {
 	}
 	void init(uint32_t width, uint32_t height){
@@ -27,13 +35,36 @@ public:
 		for(auto i = 0;i<400;i++){
 			keys[i] = false;
 		}
-		GLFWkeyfun func = [](GLFWwindow* w, int key, int scancode, int action, int mods)
+
+		GLFWkeyfun keyCallback = [](GLFWwindow* w, int key, int scancode, int action, int mods)
 		{
 			WindowManager* t = static_cast<WindowManager*>(glfwGetWindowUserPointer(w));
 			t->keys[key] = (action) ? true : false;
-			//jlog(key);
 		};
-		glfwSetKeyCallback(window, func);
+		glfwSetKeyCallback(window, keyCallback);
+
+		GLFWcursorposfun cursorCallback = [](GLFWwindow* w, double x, double y)
+		{
+			WindowManager* t = static_cast<WindowManager*>(glfwGetWindowUserPointer(w));
+			t->lastCursorPosDifX = x - t->lastCursorPosX;
+			t->lastCursorPosDifY = y - t->lastCursorPosY;
+			t->lastCursorPosX = x;
+			t->lastCursorPosY = y;
+		};
+		glfwSetCursorPosCallback(window, cursorCallback);
+
+		GLFWmousebuttonfun cursorButtonCallback = [](GLFWwindow* w, int button, int action, int mods)
+		{
+			WindowManager* t = static_cast<WindowManager*>(glfwGetWindowUserPointer(w));
+			if (button == GLFW_MOUSE_BUTTON_LEFT) {
+				if(action == GLFW_PRESS){
+					t->mouseDown = true;
+				}else{
+					t->mouseDown = false;
+				}
+			}
+		};
+		glfwSetMouseButtonCallback(window, cursorButtonCallback);
 	}
 	vk::SurfaceKHR createSurface(vk::Instance& instance){
 		VkSurfaceKHR surface;
@@ -59,6 +90,8 @@ public:
 		return glfwWindowShouldClose(this->window);
 	}
 	void update() {
+		this->lastCursorPosDifX = 0;
+    	this->lastCursorPosDifY = 0;
 		glfwPollEvents();
 	}
 

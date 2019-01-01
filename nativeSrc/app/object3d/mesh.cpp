@@ -7,19 +7,16 @@
 #include "../engine/pipeline.cpp"
 
 
-
-class Mesh {
+class Mesh : public Node  {
     public:
-
-    
 
     const std::vector<Vertex> _vertices = {
         // Lookup done in shader, layout (1,2,3)
         // Possition           // Color             // Normal           // Texture coord
-        {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f}},
-        {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f}},
-        {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f}},
-        {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 1.0f}}
+        {{-0.5f, -0.5f, 0.0f}, {0.05f, 0.8f, 0.8f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
+        {{0.5f, -0.5f, 0.0f}, {0.05f, 0.8f, 0.8f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},
+        {{0.5f, 0.5f, 0.0f}, {0.05f, 0.8f, 0.8f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+        {{-0.5f, 0.5f, 0.0f}, {0.05f, 0.8f, 0.8f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}}
     };
 
     const std::vector<uint16_t> _indices = {

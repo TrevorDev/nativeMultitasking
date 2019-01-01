@@ -111,7 +111,11 @@ void render(const Napi::CallbackInfo& info) {
 
     cam.computeWorldMatrix();
     cam.computeViewMatrix();
+    onlyMesh.position.x = 1;
     renderer.drawFrame(swapchain,cam, onlyMesh);
+
+    // onlyMesh.position.x = 0;
+    // renderer.drawFrame(swapchain,cam, onlyMesh);
   }catch (const std::exception& e) {
     jlog("Native code threw an exception:");
     std::cerr << e.what() << std::endl;
