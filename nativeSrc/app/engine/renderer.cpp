@@ -60,59 +60,46 @@ class Renderer {
         vkUnmapMemory(_device._device, _pointLightsUniformBuffersMemory[currentImage]);
     }
     
-    uint32_t _currentFrame = 0;
+    
     void drawFrame(Swapchain& swapchain, Camera& cam, Mesh& onlyMesh) {
-        _device._device.waitForFences(_device._inFlightFences[_currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
+        _device._device.waitForFences(_device._inFlightFences[swapchain._currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
 
-        uint32_t imageIndex;
-        VkResult result = vkAcquireNextImageKHR(_device._device, swapchain._swapChain, std::numeric_limits<uint64_t>::max(), _device._imageAvailableSemaphores[_currentFrame], VK_NULL_HANDLE, &imageIndex);
+        swapchain.getNextImage(_device);
 
-        if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-            //recreateSwapChain();
-            return;
-        } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-            throw std::runtime_error("failed to acquire swap chain image!");
-        }
+        updateUniformBuffer(swapchain._currentImageIndex, swapchain, onlyMesh, cam, onlyMesh._materialRef->_uniformBuffersMemory, onlyMesh._materialRef->_pointLightsUniformBuffersMemory);
 
-        updateUniformBuffer(imageIndex, swapchain, onlyMesh, cam, onlyMesh._materialRef->_uniformBuffersMemory, onlyMesh._materialRef->_pointLightsUniformBuffersMemory);
-
+        // Submit draw
         vk::SubmitInfo submitInfo = {};
-
-        vk::Semaphore waitSemaphores[] = {_device._imageAvailableSemaphores[_currentFrame]};
+        vk::Semaphore waitSemaphores[] = {_device._imageAvailableSemaphores[swapchain._currentFrame]};
         vk::PipelineStageFlags waitStages[] = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
         submitInfo.waitSemaphoreCount = 1;
         submitInfo.setPWaitSemaphores(waitSemaphores);
         submitInfo.commandBufferCount = 1;
         submitInfo.setPWaitDstStageMask(waitStages);
-        submitInfo.setPCommandBuffers(&onlyMesh._commandBuffers[imageIndex]);
-
-        vk::Semaphore signalSemaphores[] = {_device._renderFinishedSemaphores[_currentFrame]};
+        submitInfo.setPCommandBuffers(&onlyMesh._commandBuffers[swapchain._currentImageIndex]); // This command puffer specifies which framebuffer to render to
+        vk::Semaphore signalSemaphores[] = {_device._renderFinishedSemaphores[swapchain._currentFrame]};
         submitInfo.setPSignalSemaphores(signalSemaphores);
+        _device._device.resetFences(_device._inFlightFences[swapchain._currentFrame]);
+        _device._graphicsQueue.submit(submitInfo, _device._inFlightFences[swapchain._currentFrame]);
 
-        _device._device.resetFences(_device._inFlightFences[_currentFrame]);
-
-        _device._graphicsQueue.submit(submitInfo, _device._inFlightFences[_currentFrame]);
-
+        // present frame
         vk::PresentInfoKHR presentInfo = {};
         presentInfo.setPWaitSemaphores(signalSemaphores);
-
         vk::SwapchainKHR swapChains[] = {swapchain._swapChain};
         presentInfo.swapchainCount = 1;
         presentInfo.setPSwapchains(swapChains);
-
-        presentInfo.pImageIndices = &imageIndex;
-
-        vk::Result r = _device._presentQueue.presentKHR(presentInfo);
+        presentInfo.pImageIndices = &swapchain._currentImageIndex;
+        vk::Result result = _device._presentQueue.presentKHR(presentInfo);
 
         // if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || _framebufferResized) {
         //     framebufferResized = false;
         //     //recreateSwapChain();
         // } else 
-        if (result != VK_SUCCESS) {
+        if (result != vk::Result::eSuccess) {
             throw std::runtime_error("failed to present swap chain image!");
         }
 
-        _currentFrame = (_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+        swapchain._currentFrame = (swapchain._currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
     }
     
     private:

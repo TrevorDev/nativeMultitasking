@@ -8,9 +8,9 @@ class Quaternion{
         float w = 1;
     void static FromEuler(float x, float y, float z, Quaternion& result){
         // Produces a quaternion from Euler angles in the z-y-x orientation (Tait-Bryan angles)
-        float halfRoll = z * 0.5;
-        float halfPitch = x * 0.5;
-        float halfYaw = y * 0.5;
+        float halfRoll = z * 0.5f;
+        float halfPitch = x * 0.5f;
+        float halfYaw = y * 0.5f;
         
         float sinRoll = std::sin(halfRoll);
         float cosRoll = std::cos(halfRoll);

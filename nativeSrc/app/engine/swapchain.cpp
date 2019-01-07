@@ -18,6 +18,10 @@ class Swapchain {
     vk::Extent2D _swapChainExtent;
     std::vector<Image> _swapChainImages = {};
     Image _depthImage;
+
+    // TODO why are there 2 variables below? Do they store the same info?
+    uint32_t _currentFrame = 0;
+    uint32_t _currentImageIndex = 0;
     
     Swapchain(){
         
@@ -86,6 +90,18 @@ class Swapchain {
         _depthImage.createImage(_swapChainExtent.width, _swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
         _depthImage.createImageView(depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
         _depthImage.transitionImageLayout(depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+    }
+
+    void getNextImage(Device& device){
+        VkResult result = vkAcquireNextImageKHR(device._device, _swapChain, std::numeric_limits<uint64_t>::max(), device._imageAvailableSemaphores[_currentFrame], VK_NULL_HANDLE, &_currentImageIndex);
+
+        if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+            // TODO recreate swapchain here
+            //recreateSwapChain();
+            return;
+        } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+            throw std::runtime_error("failed to acquire swap chain image!");
+        }
     }
     
     private:
