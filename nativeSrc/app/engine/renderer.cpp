@@ -60,28 +60,14 @@ class Renderer {
         vkUnmapMemory(_device._device, _pointLightsUniformBuffersMemory[currentImage]);
     }
     
-    
-    void drawFrame(Swapchain& swapchain, Camera& cam, Mesh& onlyMesh) {
+
+    void getNextImage(Swapchain& swapchain){
         _device._device.waitForFences(_device._inFlightFences[swapchain._currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
 
         swapchain.getNextImage(_device);
+    }
 
-        updateUniformBuffer(swapchain._currentImageIndex, swapchain, onlyMesh, cam, onlyMesh._materialRef->_uniformBuffersMemory, onlyMesh._materialRef->_pointLightsUniformBuffersMemory);
-
-        // Submit draw
-        vk::SubmitInfo submitInfo = {};
-        vk::Semaphore waitSemaphores[] = {_device._imageAvailableSemaphores[swapchain._currentFrame]};
-        vk::PipelineStageFlags waitStages[] = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
-        submitInfo.waitSemaphoreCount = 1;
-        submitInfo.setPWaitSemaphores(waitSemaphores);
-        submitInfo.commandBufferCount = 1;
-        submitInfo.setPWaitDstStageMask(waitStages);
-        submitInfo.setPCommandBuffers(&onlyMesh._commandBuffers[swapchain._currentImageIndex]); // This command puffer specifies which framebuffer to render to
-        vk::Semaphore signalSemaphores[] = {_device._renderFinishedSemaphores[swapchain._currentFrame]};
-        submitInfo.setPSignalSemaphores(signalSemaphores);
-        _device._device.resetFences(_device._inFlightFences[swapchain._currentFrame]);
-        _device._graphicsQueue.submit(submitInfo, _device._inFlightFences[swapchain._currentFrame]);
-
+    void presentFrame(Swapchain& swapchain){
         // present frame
         vk::PresentInfoKHR presentInfo = {};
         presentInfo.setPWaitSemaphores(signalSemaphores);
@@ -100,6 +86,32 @@ class Renderer {
         }
 
         swapchain._currentFrame = (swapchain._currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+    }
+    vk::Semaphore signalSemaphores[1];
+    void drawFrame(Swapchain& swapchain, Camera& cam, Mesh& onlyMesh, Mesh& otherMesh, int drawNum = 0) {
+        
+        updateUniformBuffer(swapchain._currentImageIndex, swapchain, onlyMesh, cam, onlyMesh._materialRef->_uniformBuffersMemory, onlyMesh._materialRef->_pointLightsUniformBuffersMemory);
+        updateUniformBuffer(swapchain._currentImageIndex, swapchain, otherMesh, cam, otherMesh._materialRef->_uniformBuffersMemory, otherMesh._materialRef->_pointLightsUniformBuffersMemory);
+
+        vk::CommandBuffer const commandBuffers[] = {otherMesh._commandBuffers[swapchain._currentImageIndex], onlyMesh._commandBuffers[swapchain._currentImageIndex]};
+
+        // Submit draw
+        vk::SubmitInfo submitInfo = {};
+        vk::Semaphore waitSemaphores[] = {_device._imageAvailableSemaphores[swapchain._currentFrame]};
+        vk::PipelineStageFlags waitStages[] = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
+        submitInfo.waitSemaphoreCount = 1;
+        submitInfo.setPWaitSemaphores(waitSemaphores);
+        submitInfo.commandBufferCount = 2;
+        submitInfo.setPWaitDstStageMask(waitStages);
+        submitInfo.setPCommandBuffers(commandBuffers); // This command puffer specifies which framebuffer to render to
+        signalSemaphores[0] = _device._renderFinishedSemaphores[swapchain._currentFrame];
+        submitInfo.setPSignalSemaphores(signalSemaphores);
+        _device._device.resetFences(_device._inFlightFences[swapchain._currentFrame]);
+        //jlog("submit");
+        _device._graphicsQueue.submit(submitInfo, _device._inFlightFences[swapchain._currentFrame]);
+        //jlog("submit done");
+
+        
     }
     
     private:

@@ -19,11 +19,13 @@ WindowManager wm;
 
 Camera cam;
 Mesh onlyMesh;
+Mesh otherMesh;
 
 Swapchain swapchain;
 RenderPass renderPass;
 
 Material material;
+Material otherMaterial;
 
 void init(const Napi::CallbackInfo& info) {
   jlog("Started!");
@@ -56,7 +58,9 @@ void init(const Napi::CallbackInfo& info) {
     // Create a mesh with a standard material
     // TODO: these shouldnt be dependant on swapchain
     material.init(renderer._device, renderPass, swapchain);
+    otherMaterial.init(renderer._device, renderPass, swapchain);
     onlyMesh.init(renderer._device, &material, swapchain);
+    otherMesh.init(renderer._device, &otherMaterial, swapchain);
 
     // Create syncing objects to avoid drawing too quickly
     renderer._device.createSyncObjects();
@@ -112,7 +116,13 @@ void render(const Napi::CallbackInfo& info) {
     cam.computeWorldMatrix();
     cam.computeViewMatrix();
     onlyMesh.position.x = 1;
-    renderer.drawFrame(swapchain,cam, onlyMesh);
+
+    renderer.getNextImage(swapchain);
+    renderer.drawFrame(swapchain,cam, onlyMesh, otherMesh);
+    //onlyMesh.position.x = 0;
+    // jlog("second");
+    // renderer.drawFrame(swapchain,cam, onlyMesh, 1);
+    renderer.presentFrame(swapchain);
 
     // onlyMesh.position.x = 0;
     // renderer.drawFrame(swapchain,cam, onlyMesh);
