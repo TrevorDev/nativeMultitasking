@@ -58,9 +58,12 @@ void init(const Napi::CallbackInfo& info) {
     // Create a mesh with a standard material
     // TODO: these shouldnt be dependant on swapchain
     material.init(renderer._device, renderPass, swapchain);
-    otherMaterial.init(renderer._device, renderPass, swapchain);
+    // otherMaterial.init(renderer._device, renderPass, swapchain);
     onlyMesh.init(renderer._device, &material, swapchain);
-    otherMesh.init(renderer._device, &otherMaterial, swapchain);
+
+    std::vector<Mesh> meshes = {onlyMesh};
+    renderer.createCommandBuffers(renderer._device, swapchain, renderPass, meshes);
+    // otherMesh.init(renderer._device, &otherMaterial, swapchain);
 
     // Create syncing objects to avoid drawing too quickly
     renderer._device.createSyncObjects();

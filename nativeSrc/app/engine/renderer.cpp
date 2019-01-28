@@ -91,9 +91,10 @@ class Renderer {
     void drawFrame(Swapchain& swapchain, Camera& cam, Mesh& onlyMesh, Mesh& otherMesh, int drawNum = 0) {
         
         updateUniformBuffer(swapchain._currentImageIndex, swapchain, onlyMesh, cam, onlyMesh._materialRef->_uniformBuffersMemory, onlyMesh._materialRef->_pointLightsUniformBuffersMemory);
-        updateUniformBuffer(swapchain._currentImageIndex, swapchain, otherMesh, cam, otherMesh._materialRef->_uniformBuffersMemory, otherMesh._materialRef->_pointLightsUniformBuffersMemory);
+        //updateUniformBuffer(swapchain._currentImageIndex, swapchain, otherMesh, cam, otherMesh._materialRef->_uniformBuffersMemory, otherMesh._materialRef->_pointLightsUniformBuffersMemory);
 
-        vk::CommandBuffer const commandBuffers[] = {otherMesh._commandBuffers[swapchain._currentImageIndex], onlyMesh._commandBuffers[swapchain._currentImageIndex]};
+        //otherMesh._commandBuffers[swapchain._currentImageIndex], 
+        vk::CommandBuffer const commandBuffers[] = {_commandBuffers[swapchain._currentImageIndex]};
 
         // Submit draw
         vk::SubmitInfo submitInfo = {};
@@ -101,7 +102,7 @@ class Renderer {
         vk::PipelineStageFlags waitStages[] = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
         submitInfo.waitSemaphoreCount = 1;
         submitInfo.setPWaitSemaphores(waitSemaphores);
-        submitInfo.commandBufferCount = 2;
+        submitInfo.commandBufferCount = 1;
         submitInfo.setPWaitDstStageMask(waitStages);
         submitInfo.setPCommandBuffers(commandBuffers); // This command puffer specifies which framebuffer to render to
         signalSemaphores[0] = _device._renderFinishedSemaphores[swapchain._currentFrame];
@@ -112,6 +113,67 @@ class Renderer {
         //jlog("submit done");
 
         
+    }
+
+    std::vector<vk::CommandBuffer> _commandBuffers = {};
+    void createCommandBuffers(Device& device, Swapchain& sc, RenderPass& renderPass, std::vector<Mesh> meshes){
+        
+        _commandBuffers.resize(sc._swapChainImages.size());
+
+        VkCommandBufferAllocateInfo allocInfo = {};
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.commandPool = device._commandPool;
+        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo.commandBufferCount = (uint32_t) _commandBuffers.size();
+
+        _commandBuffers = device._device.allocateCommandBuffers(allocInfo);
+
+        for (size_t i = 0; i < _commandBuffers.size(); i++) {
+            VkCommandBufferBeginInfo beginInfo = {};
+            beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+            beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+
+            if (vkBeginCommandBuffer(_commandBuffers[i], &beginInfo) != VK_SUCCESS) {
+                throw std::runtime_error("failed to begin recording command buffer!");
+            }
+    
+            VkRenderPassBeginInfo renderPassInfo = {};
+            renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+            renderPassInfo.renderPass = renderPass._renderPass;
+            renderPassInfo.framebuffer = sc._swapChainImages[i]._framebuffer;
+            renderPassInfo.renderArea.offset = {0, 0};
+            renderPassInfo.renderArea.extent = sc._swapChainExtent;
+
+            std::array<VkClearValue, 2> clearValues = {};
+            clearValues[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
+            clearValues[1].depthStencil = {1.0f, 0};
+
+            renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+            renderPassInfo.pClearValues = clearValues.data();
+
+            vkCmdBeginRenderPass(_commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+                for (auto &mesh : meshes){
+                    vkCmdBindPipeline(_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, mesh._materialRef->pipeline._graphicsPipeline);
+
+                    VkBuffer vertexBuffers[] = {mesh._vertexBuffer};
+                    VkDeviceSize offsets[] = {0};
+                    vkCmdBindVertexBuffers(_commandBuffers[i], 0, 1, vertexBuffers, offsets);
+
+                    vkCmdBindIndexBuffer(_commandBuffers[i], mesh._indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+
+                    _commandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics,mesh._materialRef->pipeline._pipelineLayout,0, mesh._materialRef->descriptorSetLayout._descriptorSets[i], {0});
+
+                    vkCmdDrawIndexed(_commandBuffers[i], static_cast<uint32_t>(mesh._indices.size()), 1, 0, 0, 0);
+                }
+                
+
+            vkCmdEndRenderPass(_commandBuffers[i]);
+
+            if (vkEndCommandBuffer(_commandBuffers[i]) != VK_SUCCESS) {
+                throw std::runtime_error("failed to record command buffer!");
+            }
+        }
     }
     
     private:

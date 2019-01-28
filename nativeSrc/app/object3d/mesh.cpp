@@ -85,6 +85,17 @@ class Mesh : public Node  {
         vkFreeMemory(device._device, stagingBufferMemory, nullptr);
     }
 
+    void draw(VkCommandBuffer cmdbuffer, VkPipelineLayout pipelineLayout){
+        VkDeviceSize offsets[1] = { 0 };
+        auto x = (VkBuffer)(_vertexBuffer);
+        //this->_materialRef->
+        // vkCmdBindDescriptorSets(cmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, NULL);
+        
+        // vkCmdBindVertexBuffers(cmdbuffer, 0, 1, &x, offsets);
+        // vkCmdBindIndexBuffer(cmdbuffer, _indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        // vkCmdDrawIndexed(cmdbuffer, indexCount, 1, 0, 0, 1);
+    }
+
     private:
     
 };
