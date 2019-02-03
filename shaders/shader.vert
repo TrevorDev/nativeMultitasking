@@ -9,15 +9,15 @@ layout(binding = 0) uniform UniformBufferObject {
     vec3 camPos;
 } ubo;
 
-struct PointLightUniformBufferObject {
-	vec4 position;
-	vec3 color;
-	float radius;
-};
+// struct PointLightUniformBufferObject {
+// 	vec4 position;
+// 	vec3 color;
+// 	float radius;
+// };
 
-layout(binding = 1) uniform PointLightsUniformBufferObject {
-    PointLightUniformBufferObject lights[NUM_LIGHTS];
-} pointLights;
+// layout(binding = 1) uniform PointLightsUniformBufferObject {
+//     PointLightUniformBufferObject lights[NUM_LIGHTS];
+// } pointLights;
 
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inColor;
@@ -49,7 +49,7 @@ void main() {
     
     fragNormal = inNormal;
     
-    fragToLight	= normalize(pointLights.lights[0].position.xyz - worldPos.xyz);
+    //fragToLight	= normalize(pointLights.lights[0].position.xyz - worldPos.xyz);
 
     fragToCamera = normalize(ubo.camPos.xyz - worldPos.xyz);
     

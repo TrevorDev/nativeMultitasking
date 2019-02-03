@@ -58,7 +58,7 @@ class Pipeline {
     Pipeline(){
         
     }
-    void init(Device& device, uint32_t viewportWidth, uint32_t viewportHeight, std::vector<Shader> inputShaderStages, DescriptorSetLayout descriptorSetLayout, RenderPass renderPass){
+    void init(Device& device, uint32_t viewportWidth, uint32_t viewportHeight, std::vector<Shader> inputShaderStages, vk::DescriptorSetLayout descriptorSetLayout, RenderPass renderPass){
         // Convert shaders to config object
         VkPipelineShaderStageCreateInfo* shaderStages = new VkPipelineShaderStageCreateInfo[inputShaderStages.size()];
         auto i = 0;
@@ -150,7 +150,7 @@ class Pipeline {
         // Set the descriptorSetLayout on the pipeline
         vk::PipelineLayoutCreateInfo pipelineLayoutInfo = {};
         pipelineLayoutInfo.setLayoutCount = 1;
-        pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout._descriptorSetLayout;
+        pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
         _pipelineLayout = device._device.createPipelineLayout(pipelineLayoutInfo);
 
         // Create the pipeline

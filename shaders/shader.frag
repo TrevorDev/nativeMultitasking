@@ -26,35 +26,36 @@ layout(location = 0) out vec4 outColor;
 
 
 void main() {
-    vec3 nfragNormal = normalize(fragNormal);
-    vec3 nfragToLight = normalize(fragToLight);
-    vec3 nfragToCamera = normalize(fragToCamera);
+    // vec3 nfragNormal = normalize(fragNormal);
+    // vec3 nfragToLight = normalize(fragToLight);
+    // vec3 nfragToCamera = normalize(fragToCamera);
 
-    // parameters of the light and possible values
-    vec3 lightAmbientIntensitys = vec3(0.3, 0.3, 0.3);
-    vec3 lightDiffuseIntensitys = vec3(1, 1, 1);
-    vec3 lightSpecularIntensitys = vec3(1, 1, 1);
+    // // parameters of the light and possible values
+    // vec3 lightAmbientIntensitys = vec3(0.3, 0.3, 0.3);
+    // vec3 lightDiffuseIntensitys = vec3(1, 1, 1);
+    // vec3 lightSpecularIntensitys = vec3(1, 1, 1);
 
-    // parameters of the material and possible values
-    vec3 matAmbientReflectances = vec3(1, 1, 1);
-    vec3 matDiffuseReflectances = vec3(1, 1, 1);
-    vec3 matSpecularReflectances = vec3(1, 1, 1);
-    float matShininess = 64*2*2;
+    // // parameters of the material and possible values
+    // vec3 matAmbientReflectances = vec3(1, 1, 1);
+    // vec3 matDiffuseReflectances = vec3(1, 1, 1);
+    // vec3 matSpecularReflectances = vec3(1, 1, 1);
+    // float matShininess = 64*2*2;
 
-    // calculation as for Lambertian reflection
-    float diffuseTerm = clamp(dot(nfragNormal, nfragToLight), 0, 1);
-    vec3 diffuseLighting =  matDiffuseReflectances * lightDiffuseIntensitys * diffuseTerm;
+    // // calculation as for Lambertian reflection
+    // float diffuseTerm = clamp(dot(nfragNormal, nfragToLight), 0, 1);
+    // vec3 diffuseLighting =  matDiffuseReflectances * lightDiffuseIntensitys * diffuseTerm;
 
-    // calculate specular reflection only if
-    // the surface is oriented to the light source
-    float specularTerm = 0;
-    if(dot(nfragNormal, nfragToLight) > 0)
-    {
-        // half vector
-        vec3 H = normalize(nfragToLight + nfragToCamera);
-        specularTerm = pow(dot(nfragNormal, H), matShininess);
-    }
-    vec3 specularLighting = matSpecularReflectances * lightSpecularIntensitys * specularTerm;
+    // // calculate specular reflection only if
+    // // the surface is oriented to the light source
+    // float specularTerm = 0;
+    // if(dot(nfragNormal, nfragToLight) > 0)
+    // {
+    //     // half vector
+    //     vec3 H = normalize(nfragToLight + nfragToCamera);
+    //     specularTerm = pow(dot(nfragNormal, H), matShininess);
+    // }
+    // vec3 specularLighting = matSpecularReflectances * lightSpecularIntensitys * specularTerm;
 
-    outColor = vec4(fragColor*(diffuseLighting+specularLighting),1); //  vec4(fragColor,1)//  = vec4(0.5,0.3,0.3,1); //texture(texSampler, fragTexCoord);
+    // outColor = vec4(fragColor*(diffuseLighting+specularLighting),1); //  vec4(fragColor,1)//  = vec4(0.5,0.3,0.3,1); //texture(texSampler, fragTexCoord);
+    outColor = vec4(0.5,0.3,0.3,1);
 }

@@ -88,9 +88,11 @@ class Renderer {
         swapchain._currentFrame = (swapchain._currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
     }
     vk::Semaphore signalSemaphores[1];
-    void drawFrame(Swapchain& swapchain, Camera& cam, Mesh& onlyMesh, Mesh& otherMesh, int drawNum = 0) {
+    void drawFrame(Swapchain& swapchain, Camera& cam, std::vector<Mesh>& meshes, int drawNum = 0) {
+        for(auto &m : meshes){
+            updateUniformBuffer(swapchain._currentImageIndex, swapchain, m, cam, m._uniformBuffersMemory, m._materialRef->_pointLightsUniformBuffersMemory);
+        }
         
-        updateUniformBuffer(swapchain._currentImageIndex, swapchain, onlyMesh, cam, onlyMesh._materialRef->_uniformBuffersMemory, onlyMesh._materialRef->_pointLightsUniformBuffersMemory);
         //updateUniformBuffer(swapchain._currentImageIndex, swapchain, otherMesh, cam, otherMesh._materialRef->_uniformBuffersMemory, otherMesh._materialRef->_pointLightsUniformBuffersMemory);
 
         //otherMesh._commandBuffers[swapchain._currentImageIndex], 
@@ -116,7 +118,7 @@ class Renderer {
     }
 
     std::vector<vk::CommandBuffer> _commandBuffers = {};
-    void createCommandBuffers(Device& device, Swapchain& sc, RenderPass& renderPass, std::vector<Mesh> meshes){
+    void createCommandBuffers(Device& device, Pipeline& pipeline, Swapchain& sc, RenderPass& renderPass, std::vector<Mesh> meshes){
         
         _commandBuffers.resize(sc._swapChainImages.size());
 
@@ -154,7 +156,7 @@ class Renderer {
             vkCmdBeginRenderPass(_commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
                 for (auto &mesh : meshes){
-                    vkCmdBindPipeline(_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, mesh._materialRef->pipeline._graphicsPipeline);
+                    vkCmdBindPipeline(_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline._graphicsPipeline);
 
                     VkBuffer vertexBuffers[] = {mesh._vertexBuffer};
                     VkDeviceSize offsets[] = {0};
@@ -162,7 +164,9 @@ class Renderer {
 
                     vkCmdBindIndexBuffer(_commandBuffers[i], mesh._indexBuffer, 0, VK_INDEX_TYPE_UINT16);
 
-                    _commandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics,mesh._materialRef->pipeline._pipelineLayout,0, mesh._materialRef->descriptorSetLayout._descriptorSets[i], {0});
+                    //mesh.draw(VkCommandBuffer cmdbuffer, VkPipelineLayout pipelineLayout)
+
+                    _commandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics,pipeline._pipelineLayout,0, mesh._descriptorSets[i], {0});
 
                     vkCmdDrawIndexed(_commandBuffers[i], static_cast<uint32_t>(mesh._indices.size()), 1, 0, 0, 0);
                 }
