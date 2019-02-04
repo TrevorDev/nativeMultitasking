@@ -29,7 +29,7 @@ Shader vertShader;
 Shader fragShader;
 Pipeline pipeline;
 
-int meshCount = 2;
+int meshCount = 500;
 
 std::vector<Mesh> meshes = {};
 
@@ -107,15 +107,12 @@ void init(const Napi::CallbackInfo& info) {
     jlog("creating meshes");
     meshes.resize(meshCount);
     for(auto &m : meshes){
-      jlog("creating mesh");
       m.init(renderer._device, &material, swapchain);
-      jlog("uni");
       m.createUniformBuffer(renderer._device, swapchain._swapChainImages.size());
-      jlog("desc");
       m.createDescriptorSet(renderer._device, _descriptorPool,  _descriptorSetLayout, swapchain._swapChainImages.size());
-      jlog("d reating mesh");
     }
     renderer.createCommandBuffers(renderer._device, pipeline, swapchain, renderPass, meshes);
+    jlog("creating meshes done");
     // otherMesh.init(renderer._device, &otherMaterial, swapchain);
 
     // Create syncing objects to avoid drawing too quickly
@@ -172,8 +169,14 @@ void render(const Napi::CallbackInfo& info) {
 
     cam.computeWorldMatrix();
     cam.computeViewMatrix();
-    meshes[0].position.x = 1;
-    meshes[1].position.y = 1;
+
+    int pos = 0;
+    for(auto &mesh : meshes){
+      mesh.position.x = pos;
+      mesh.position.y = pos/100.0;
+      mesh.position.z = -pos;
+      pos+=1;
+    }
 
     renderer.getNextImage(swapchain);
     renderer.drawFrame(swapchain,cam, meshes);

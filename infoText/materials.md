@@ -1,4 +1,4 @@
-Desired descriptor layout:
+Desired descriptor layouts:
     scene data
         lights:
             pointLights
