@@ -39,10 +39,6 @@ class Renderer {
         UniformBufferObject ubo = {};
         m.computeWorldMatrix();
         ubo.model = glm::make_mat4((float*)(m._worldMatrix.m)); //glm::mat4(1.0f);//glm::rotate(glm::mat4(1.0f), time * glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ubo.view = glm::make_mat4((float*)(cam._viewMatrix.m));  //glm::lookAt(glm::vec3(0.0f, 0.0, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ubo.proj = glm::perspective(cam.projectionAngleRad, swapchain._swapChainExtent.width / (float) swapchain._swapChainExtent.height, cam.nearClip, cam.farClip);
-        ubo.proj[1][1] *= -1;
-        ubo.cameraPos = glm::vec3(cam.position.x,cam.position.y,cam.position.z);
 
         void* data;
         vkMapMemory(_device._device, _uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data);
@@ -67,7 +63,7 @@ class Renderer {
         auto currentTime = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
-        UniformBufferObject ubo = {};
+        SceneUniformBufferObject ubo = {};
         ubo.view = glm::make_mat4((float*)(cam._viewMatrix.m));  //glm::lookAt(glm::vec3(0.0f, 0.0, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         ubo.proj = glm::perspective(cam.projectionAngleRad, swapchain._swapChainExtent.width / (float) swapchain._swapChainExtent.height, cam.nearClip, cam.farClip);
         ubo.proj[1][1] *= -1;

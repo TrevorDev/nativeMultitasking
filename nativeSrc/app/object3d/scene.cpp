@@ -14,7 +14,7 @@ class Scene {
     std::vector<vk::Buffer> _uniformBuffers;
     std::vector<vk::DeviceMemory> _uniformBuffersMemory;
     void createUniformBuffer(Device device, uint16_t swapChainImageCount){
-        VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+        VkDeviceSize bufferSize = sizeof(SceneUniformBufferObject);
 
         _uniformBuffers.resize(swapChainImageCount);
         _uniformBuffersMemory.resize(swapChainImageCount);
@@ -40,7 +40,7 @@ class Scene {
             VkDescriptorBufferInfo bufferInfo = {};
             bufferInfo.buffer = _uniformBuffers[i];
             bufferInfo.offset = 0;
-            bufferInfo.range = sizeof(UniformBufferObject);
+            bufferInfo.range = sizeof(SceneUniformBufferObject);
 
             std::array<VkWriteDescriptorSet, 1> descriptorWrites = {};
 

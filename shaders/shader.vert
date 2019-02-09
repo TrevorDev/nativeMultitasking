@@ -4,7 +4,6 @@
 layout (constant_id = 0) const int NUM_LIGHTS = 1;
 
 layout(set = 0, binding = 0) uniform SceneUniformBufferObject {
-    mat4 model;
     mat4 view;
     mat4 proj;
     vec3 camPos;
@@ -12,9 +11,6 @@ layout(set = 0, binding = 0) uniform SceneUniformBufferObject {
 
 layout(set = 1, binding = 0) uniform UniformBufferObject {
     mat4 model;
-    mat4 view;
-    mat4 proj;
-    vec3 camPos;
 } ubo;
 
 // struct PointLightUniformBufferObject {
@@ -59,7 +55,7 @@ void main() {
     
     //fragToLight	= normalize(pointLights.lights[0].position.xyz - worldPos.xyz);
 
-    fragToCamera = normalize(ubo.camPos.xyz - worldPos.xyz);
+    fragToCamera = normalize(sceneubo.camPos.xyz - worldPos.xyz);
     
     gl_Position = sceneubo.proj * sceneubo.view * worldPos;
 }

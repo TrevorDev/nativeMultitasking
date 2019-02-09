@@ -15,11 +15,14 @@ struct QueueFamilyIndices {
     }
 };
 
-struct UniformBufferObject {
-    glm::mat4 model;
+struct SceneUniformBufferObject {
     glm::mat4 view;
     glm::mat4 proj;
     glm::vec3 cameraPos;
+};
+
+struct UniformBufferObject {
+    glm::mat4 model;
 };
 
 struct SinglePointLightUniformBufferObject {
