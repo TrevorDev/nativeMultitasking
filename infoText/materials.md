@@ -1,5 +1,10 @@
 Desired descriptor layouts:
     scene data
+        cam data
+            mat4 view;
+            mat4 proj;
+            mat3 normal // http://www.lighthouse3d.com/tutorials/glsl-12-tutorial/the-normal-matrix/, https://stackoverflow.com/questions/21079623/how-to-calculate-the-normal-matrix
+            vec3 camPos;
         lights:
             pointLights
             spotlights
@@ -16,10 +21,6 @@ Desired descriptor layouts:
     instanceData
         UBO
             mat4 model;
-            mat4 view;
-            mat4 proj;
-            mat3 normal // http://www.lighthouse3d.com/tutorials/glsl-12-tutorial/the-normal-matrix/, https://stackoverflow.com/questions/21079623/how-to-calculate-the-normal-matrix
-        vec3 camPos;
 
     blinn phong shader: https://web.archive.org/web/20160318154627/www.sunandblackcat.com/tipFullView.php?l=eng&topicid=30
 

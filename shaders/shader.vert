@@ -2,7 +2,15 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 layout (constant_id = 0) const int NUM_LIGHTS = 1;
-layout(binding = 0) uniform UniformBufferObject {
+
+layout(set = 0, binding = 0) uniform SceneUniformBufferObject {
+    mat4 model;
+    mat4 view;
+    mat4 proj;
+    vec3 camPos;
+} sceneubo;
+
+layout(set = 1, binding = 0) uniform UniformBufferObject {
     mat4 model;
     mat4 view;
     mat4 proj;
@@ -53,5 +61,5 @@ void main() {
 
     fragToCamera = normalize(ubo.camPos.xyz - worldPos.xyz);
     
-    gl_Position = ubo.proj * ubo.view * worldPos;
+    gl_Position = sceneubo.proj * sceneubo.view * worldPos;
 }

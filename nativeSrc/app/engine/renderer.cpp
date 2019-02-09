@@ -11,6 +11,7 @@
 #include "object3d/camera.cpp"
 #include "object3d/mesh.cpp"
 #include "object3d/pointLight.cpp"
+#include "object3d/scene.cpp"
 
 class Renderer {
     public:
@@ -59,6 +60,24 @@ class Renderer {
             memcpy(dataLight, &pubo, sizeof(pubo));
         vkUnmapMemory(_device._device, _pointLightsUniformBuffersMemory[currentImage]);
     }
+
+    void updateSceneUniformBuffer(uint32_t currentImage, Swapchain& swapchain, Scene m, Camera cam, std::vector<vk::DeviceMemory>& _uniformBuffersMemory) {
+        static auto startTime = std::chrono::high_resolution_clock::now();
+
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+        UniformBufferObject ubo = {};
+        ubo.view = glm::make_mat4((float*)(cam._viewMatrix.m));  //glm::lookAt(glm::vec3(0.0f, 0.0, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        ubo.proj = glm::perspective(cam.projectionAngleRad, swapchain._swapChainExtent.width / (float) swapchain._swapChainExtent.height, cam.nearClip, cam.farClip);
+        ubo.proj[1][1] *= -1;
+        ubo.cameraPos = glm::vec3(cam.position.x,cam.position.y,cam.position.z);
+
+        void* data;
+        vkMapMemory(_device._device, _uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data);
+            memcpy(data, &ubo, sizeof(ubo));
+        vkUnmapMemory(_device._device, _uniformBuffersMemory[currentImage]);
+    }
     
 
     void getNextImage(Swapchain& swapchain){
@@ -88,10 +107,11 @@ class Renderer {
         swapchain._currentFrame = (swapchain._currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
     }
     vk::Semaphore signalSemaphores[1];
-    void drawFrame(Swapchain& swapchain, Camera& cam, std::vector<Mesh>& meshes, int drawNum = 0) {
+    void drawFrame(Swapchain& swapchain, Camera& cam, Scene& scene, std::vector<Mesh>& meshes, int drawNum = 0) {
         for(auto &m : meshes){
             updateUniformBuffer(swapchain._currentImageIndex, swapchain, m, cam, m._uniformBuffersMemory, m._materialRef->_pointLightsUniformBuffersMemory);
         }
+        updateSceneUniformBuffer(swapchain._currentImageIndex, swapchain, scene, cam, scene._uniformBuffersMemory);
         
         //updateUniformBuffer(swapchain._currentImageIndex, swapchain, otherMesh, cam, otherMesh._materialRef->_uniformBuffersMemory, otherMesh._materialRef->_pointLightsUniformBuffersMemory);
 
@@ -118,7 +138,7 @@ class Renderer {
     }
 
     std::vector<vk::CommandBuffer> _commandBuffers = {};
-    void createCommandBuffers(Device& device, Pipeline& pipeline, Swapchain& sc, RenderPass& renderPass, std::vector<Mesh> meshes){
+    void createCommandBuffers(Device& device, Pipeline& pipeline, Swapchain& sc, RenderPass& renderPass,Scene& scene, std::vector<Mesh> meshes){
         
         _commandBuffers.resize(sc._swapChainImages.size());
 
@@ -155,20 +175,10 @@ class Renderer {
 
             vkCmdBeginRenderPass(_commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
+                vkCmdBindPipeline(_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline._graphicsPipeline);
+                _commandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics,pipeline._pipelineLayout,0, scene._descriptorSets[i], {0});
                 for (auto &mesh : meshes){
-                    vkCmdBindPipeline(_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline._graphicsPipeline);
-
-                    VkBuffer vertexBuffers[] = {mesh._vertexBuffer};
-                    VkDeviceSize offsets[] = {0};
-                    vkCmdBindVertexBuffers(_commandBuffers[i], 0, 1, vertexBuffers, offsets);
-
-                    vkCmdBindIndexBuffer(_commandBuffers[i], mesh._indexBuffer, 0, VK_INDEX_TYPE_UINT16);
-
-                    //mesh.draw(VkCommandBuffer cmdbuffer, VkPipelineLayout pipelineLayout)
-
-                    _commandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics,pipeline._pipelineLayout,0, mesh._descriptorSets[i], {0});
-
-                    vkCmdDrawIndexed(_commandBuffers[i], static_cast<uint32_t>(mesh._indices.size()), 1, 0, 0, 0);
+                    mesh.draw(_commandBuffers[i], pipeline._pipelineLayout, i);
                 }
                 
 

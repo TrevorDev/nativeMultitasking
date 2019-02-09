@@ -6,10 +6,12 @@
 #include "engine/renderer.cpp"
 #include "engine/renderPass.cpp"
 #include "engine/swapchain.cpp"
+#include "engine/defaultDescriptorSetLayout.cpp"
 
 #include "engine/material.cpp"
 #include "engine/image.cpp"
 #include "object3d/mesh.cpp"
+#include "object3d/scene.cpp"
 #include "object3d/camera.cpp"
 #include "object3d/pointLight.cpp"
 
@@ -29,9 +31,13 @@ Shader vertShader;
 Shader fragShader;
 Pipeline pipeline;
 
+DefaultDescriptorSet descSetScene;
+DefaultDescriptorSet descSet;
+
 int meshCount = 500;
 
 std::vector<Mesh> meshes = {};
+Scene scene;
 
 void init(const Napi::CallbackInfo& info) {
   jlog("Started!");
@@ -65,43 +71,20 @@ void init(const Napi::CallbackInfo& info) {
     // TODO: these shouldnt be dependant on swapchain
     material.init(renderer._device, renderPass, swapchain);
     // otherMaterial.init(renderer._device, renderPass, swapchain);
+
+    descSetScene.init(renderer._device, swapchain._swapChainImages.size(), 1);
     
 
-    // Create layout for single uniform buffer
-    VkDescriptorSetLayoutBinding uboLayoutBinding = {};
-    uboLayoutBinding.binding = 0;
-    uboLayoutBinding.descriptorCount = 1;
-    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    uboLayoutBinding.pImmutableSamplers = nullptr;
-    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    descSet.init(renderer._device, swapchain._swapChainImages.size(), meshCount);
+  
 
-    std::array<VkDescriptorSetLayoutBinding, 1> bindings = {uboLayoutBinding};
-    VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-    layoutInfo.pBindings = bindings.data();
-
-    auto _descriptorSetLayout = renderer._device._device.createDescriptorSetLayout(layoutInfo);
 
     // Load in shaders
     vertShader.init(renderer._device, "shaders/vert.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT);
     fragShader.init(renderer._device, "shaders/frag.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT);
 
     // Creates the pipeline to render color + depth using shaders
-    pipeline.init(renderer._device, swapchain._swapChainExtent.width, swapchain._swapChainExtent.height, {vertShader, fragShader}, _descriptorSetLayout, renderPass);
-
-    // Create descriptor set pool
-    std::array<VkDescriptorPoolSize, 1> poolSizes = {};
-    poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSizes[0].descriptorCount = static_cast<uint32_t>(swapchain._swapChainImages.size());
-
-    VkDescriptorPoolCreateInfo poolInfo = {};
-    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-    poolInfo.pPoolSizes = poolSizes.data();
-    poolInfo.maxSets = static_cast<uint32_t>(swapchain._swapChainImages.size()*meshCount);
-
-    auto _descriptorPool = renderer._device._device.createDescriptorPool(poolInfo);
+    pipeline.init(renderer._device, swapchain._swapChainExtent.width, swapchain._swapChainExtent.height, {vertShader, fragShader}, descSetScene._descriptorSetLayout, descSet._descriptorSetLayout, renderPass);
 
     // Create descriptor set per mesh
     jlog("creating meshes");
@@ -109,9 +92,13 @@ void init(const Napi::CallbackInfo& info) {
     for(auto &m : meshes){
       m.init(renderer._device, &material, swapchain);
       m.createUniformBuffer(renderer._device, swapchain._swapChainImages.size());
-      m.createDescriptorSet(renderer._device, _descriptorPool,  _descriptorSetLayout, swapchain._swapChainImages.size());
+      m.createDescriptorSet(renderer._device, descSet._descriptorPool,  descSet._descriptorSetLayout, swapchain._swapChainImages.size());
     }
-    renderer.createCommandBuffers(renderer._device, pipeline, swapchain, renderPass, meshes);
+    
+    scene.createUniformBuffer(renderer._device, swapchain._swapChainImages.size());
+    scene.createDescriptorSet(renderer._device, descSetScene._descriptorPool,  descSetScene._descriptorSetLayout, swapchain._swapChainImages.size());
+    
+    renderer.createCommandBuffers(renderer._device, pipeline, swapchain, renderPass, scene, meshes);
     jlog("creating meshes done");
     // otherMesh.init(renderer._device, &otherMaterial, swapchain);
 
@@ -179,7 +166,7 @@ void render(const Napi::CallbackInfo& info) {
     }
 
     renderer.getNextImage(swapchain);
-    renderer.drawFrame(swapchain,cam, meshes);
+    renderer.drawFrame(swapchain,cam, scene, meshes);
     //onlyMesh.position.x = 0;
     // jlog("second");
     // renderer.drawFrame(swapchain,cam, onlyMesh, 1);

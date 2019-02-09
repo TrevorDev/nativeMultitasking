@@ -36,7 +36,7 @@ class Material {
         fragShader.init(device, "shaders/frag.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT);
 
         // Creates the pipeline to render color + depth using shaders
-        pipeline.init(device, swapchain._swapChainExtent.width, swapchain._swapChainExtent.height, {vertShader, fragShader}, descriptorSetLayout._descriptorSetLayout, renderPass);
+        //pipeline.init(device, swapchain._swapChainExtent.width, swapchain._swapChainExtent.height, {vertShader, fragShader}, descriptorSetLayout._descriptorSetLayout, renderPass);
 
         
         createUniformBuffers(device, swapchain._swapChainImages.size());
