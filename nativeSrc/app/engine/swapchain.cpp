@@ -98,6 +98,7 @@ class Swapchain {
         if (result == VK_ERROR_OUT_OF_DATE_KHR) {
             // TODO recreate swapchain here
             //recreateSwapChain();
+            jlog("out of date, need to recreate");
             return;
         } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
             throw std::runtime_error("failed to acquire swap chain image!");

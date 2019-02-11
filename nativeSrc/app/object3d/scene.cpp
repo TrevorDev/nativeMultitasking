@@ -13,6 +13,8 @@ class Scene {
 
     std::vector<vk::Buffer> _uniformBuffers;
     std::vector<vk::DeviceMemory> _uniformBuffersMemory;
+    std::vector<vk::DescriptorSet> _descriptorSets;
+
     void createUniformBuffer(Device device, uint16_t swapChainImageCount){
         VkDeviceSize bufferSize = sizeof(SceneUniformBufferObject);
 
@@ -24,7 +26,24 @@ class Scene {
         }
     }
 
-    std::vector<vk::DescriptorSet> _descriptorSets;
+    void updateUniformBuffer(Device device, uint16_t imageIndex, Camera& cam){
+        static auto startTime = std::chrono::high_resolution_clock::now();
+
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+        SceneUniformBufferObject ubo = {};
+        ubo.view = glm::make_mat4((float*)(cam._viewMatrix.m));  //glm::lookAt(glm::vec3(0.0f, 0.0, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        ubo.proj = glm::perspective(cam.projectionAngleRad, cam.projectionWidth / (float) cam.projectionHeight, cam.nearClip, cam.farClip);
+        ubo.proj[1][1] *= -1;
+        ubo.cameraPos = glm::vec3(cam.position.x,cam.position.y,cam.position.z);
+
+        void* data;
+        vkMapMemory(device._device, _uniformBuffersMemory[imageIndex], 0, sizeof(ubo), 0, &data);
+            memcpy(data, &ubo, sizeof(ubo));
+        vkUnmapMemory(device._device, _uniformBuffersMemory[imageIndex]);
+    }
+
     void createDescriptorSet(Device device, vk::DescriptorPool pool, vk::DescriptorSetLayout layout, uint16_t swapChainImageCount){
         std::vector<VkDescriptorSetLayout> layouts(swapChainImageCount, layout);
         VkDescriptorSetAllocateInfo allocInfo = {};

@@ -98,6 +98,33 @@ class Mesh : public Node  {
         }
     }
 
+    void updateUniformBuffer(Device device, uint16_t imageIndex){
+         static auto startTime = std::chrono::high_resolution_clock::now();
+
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+        UniformBufferObject ubo = {};
+        this->computeWorldMatrix();
+        ubo.model = glm::make_mat4((float*)(this->_worldMatrix.m)); //glm::mat4(1.0f);//glm::rotate(glm::mat4(1.0f), time * glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+        void* data;
+        vkMapMemory(device._device, _uniformBuffersMemory[imageIndex], 0, sizeof(ubo), 0, &data);
+            memcpy(data, &ubo, sizeof(ubo));
+        vkUnmapMemory(device._device, _uniformBuffersMemory[imageIndex]);
+
+        // TODO: create this in app code
+        // PointLight p;
+        // PointLightsUniformBufferObject pubo = {};
+        // pubo.lights[0].position = glm::vec4(sin(time),0,5,0);
+        // pubo.lights[0].color = glm::vec3(1,1,1);
+        // pubo.lights[0].radius = 0.0f;
+        // void* dataLight;
+        // vkMapMemory(device._device, _pointLightsUniformBuffersMemory[imageIndex], 0, sizeof(pubo), 0, &dataLight);
+        //     memcpy(dataLight, &pubo, sizeof(pubo));
+        // vkUnmapMemory(device._device, _pointLightsUniformBuffersMemory[imageIndex]);
+    }
+
     std::vector<vk::DescriptorSet> _descriptorSets;
     void createDescriptorSet(Device device, vk::DescriptorPool pool, vk::DescriptorSetLayout layout, uint16_t swapChainImageCount){
         std::vector<VkDescriptorSetLayout> layouts(swapChainImageCount, layout);

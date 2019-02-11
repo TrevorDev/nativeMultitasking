@@ -104,6 +104,9 @@ void init(const Napi::CallbackInfo& info) {
 
     // Create syncing objects to avoid drawing too quickly
     renderer._device.createSyncObjects();
+
+    cam.projectionWidth = swapchain._swapChainExtent.width;
+    cam.projectionHeight = swapchain._swapChainExtent.height;
     jlog("Bootup success");
 
   }catch (const std::exception& e) {

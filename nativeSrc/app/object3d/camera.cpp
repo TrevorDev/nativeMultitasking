@@ -10,6 +10,8 @@ class Camera : public Node {
     float nearClip = 0.01f;
     float farClip = 100.0f;
     float projectionAngleRad = (float)M_PI / 4.0f;
+    float projectionWidth = 1920;
+    float projectionHeight = 1080;
     void computeViewMatrix(){
         Matrix4::InvertToRef(this->_worldMatrix, this->_viewMatrix);
     }
