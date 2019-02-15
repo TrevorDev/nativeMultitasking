@@ -95,6 +95,14 @@ public:
 		glfwPollEvents();
 	}
 
+	void WaitForFrameBuffer(){
+		int width = 0, height = 0;
+        while (width == 0 || height == 0) {
+            glfwGetFramebufferSize(window, &width, &height);
+            glfwWaitEvents();
+        }
+	}
+
 	
 private:
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {

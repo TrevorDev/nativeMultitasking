@@ -52,6 +52,7 @@ void init(const Napi::CallbackInfo& info) {
       VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME
     };
     wm.getRequiredInstanceExtensions(intanceExtensions);
+    
     renderer.initInstance(intanceExtensions);
     
     // Create surface to render to and initialize a device compatable with that surface
@@ -170,17 +171,81 @@ void render(const Napi::CallbackInfo& info) {
 
     renderer.getNextImage(swapchain);
     renderer.drawFrame(swapchain,cam, scene, meshes);
-    //onlyMesh.position.x = 0;
-    // jlog("second");
-    // renderer.drawFrame(swapchain,cam, onlyMesh, 1);
     renderer.presentFrame(swapchain);
 
-    // onlyMesh.position.x = 0;
-    // renderer.drawFrame(swapchain,cam, onlyMesh);
   }catch (const std::exception& e) {
-    jlog("Native code threw an exception:");
-    std::cerr << e.what() << std::endl;
-    throw;
+    // jlog("Native code threw an exception:");
+    // std::cerr << e.what() << std::endl;
+    // throw;
+    
+    // Cleanup start
+    wm.WaitForFrameBuffer();
+    jcount();    
+    vkDeviceWaitIdle(renderer._device._device);
+
+    renderer._device._device.destroyImageView(swapchain._depthImage._imageView);
+    renderer._device._device.destroyImage(swapchain._depthImage._image);
+    renderer._device._device.freeMemory(swapchain._depthImage._imageMemory);
+
+    for(auto &img : swapchain._swapChainImages){
+      renderer._device._device.destroyFramebuffer(img._framebuffer);
+    }
+
+
+    renderer._device._device.freeCommandBuffers(renderer._device._commandPool, static_cast<uint32_t>(renderer._commandBuffers.size()), renderer._commandBuffers.data());
+    
+    renderer._commandBuffers = {};
+
+    // TODO missing other distr
+
+    renderer._device._device.destroySwapchainKHR(swapchain._swapChain, nullptr);
+
+    
+    
+
+    swapchain = Swapchain();
+    
+
+    //cleanup end
+
+
+    // Create surface to render to and initialize a device compatable with that surface
+    //surface = wm.createSurface(renderer._instance._instance);
+    //renderer.initDevice(surface);
+    jlog("recreate sc");
+    // create swapchain and renderpass with color + depth
+    swapchain.init(surface, wm.getFramebufferSize().width, wm.getFramebufferSize().height, renderer._device);
+    jlog("recreate sc d");
+    jcount();
+    renderPass.init(renderer._device, swapchain._swapChainImageFormat, renderer._device.findDepthFormat());
+    jcount();
+    // Initalize swapcahin images as framebuffers which makes them able to be drawn to
+    for(auto& im : swapchain._swapChainImages){
+      im.createFrameBuffer(swapchain._depthImage, renderPass, swapchain._swapChainExtent.width, swapchain._swapChainExtent.height);
+    }
+    jcount();
+    // Create a mesh with a standard material
+    // TODO: these shouldnt be dependant on swapchain
+    material.init(renderer._device, renderPass, swapchain);
+    // otherMaterial.init(renderer._device, renderPass, swapchain);
+
+
+
+    // Load in shaders
+    vertShader.init(renderer._device, "shaders/vert.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT);
+    fragShader.init(renderer._device, "shaders/frag.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT);
+    jcount();
+
+    // Creates the pipeline to render color + depth using shaders
+    pipeline.init(renderer._device, swapchain._swapChainExtent.width, swapchain._swapChainExtent.height, {vertShader, fragShader}, descSetScene._descriptorSetLayout, descSet._descriptorSetLayout, renderPass);
+
+    jcount();
+    
+    renderer.createCommandBuffers(renderer._device, pipeline, swapchain, renderPass, scene, meshes);
+    jlog("creating meshes done");
+
+
+
   }
 }
 
