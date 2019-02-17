@@ -36,13 +36,11 @@ class Mesh : public Node  {
     }
 
     std::vector<vk::CommandBuffer> _commandBuffers = {};
-    void init(Device& device, Material* material, Swapchain& sc){
+    void init(Device& device, Material* material){
         createVertexBuffer(device);
         createIndexBuffer(device);
         
         _materialRef = material;
-        // Creates command buffer to draw a mesh
-        //_commandBuffers = _materialRef->createCommandBuffers(device, sc, _indices.size(), _vertexBuffer, _indexBuffer);
     }
     
     void createVertexBuffer(Device device) {

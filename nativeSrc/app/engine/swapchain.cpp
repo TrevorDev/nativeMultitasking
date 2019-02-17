@@ -24,22 +24,28 @@ class Swapchain {
     uint32_t _currentImageIndex = 0;
     
     Swapchain(){
-        
+        _swapChainImages = {};
+        _currentFrame = 0;
+        _currentImageIndex = 0;
     }
-    void init(VkSurfaceKHR surface, uint32_t width, uint32_t height, Device device){
+    void init(VkSurfaceKHR surface, uint32_t width, uint32_t height, Device device, uint32_t maxImageCount){
         // Get information about features the swapchain supports and choose the ideal settings
         SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device._physicalDevice, surface);
         VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
         VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes); // TODO: this should be an option, i think VK_PRESENT_MODE_IMMEDIATE_KHR is best for vr
+        jlog("Creating swapchain with dim:");
+        jlog(width);
+        jlog(height);
         _swapChainExtent = chooseSwapExtent(swapChainSupport.capabilities, width, height);
-
         // Set the count of images within the swapchain
         // TODO: expose this as an option
         uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
         if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
             imageCount = swapChainSupport.capabilities.maxImageCount;
         }
-
+        if(maxImageCount > 0 && imageCount > maxImageCount){
+            imageCount = maxImageCount;
+        }
         // Create the swapchain
         VkSwapchainCreateInfoKHR createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -53,7 +59,7 @@ class Swapchain {
 
         QueueFamilyIndices indices = device.findQueueFamilies(device._physicalDevice, surface);
         uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
-
+        
         if (indices.graphicsFamily != indices.presentFamily) {
             createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
             createInfo.queueFamilyIndexCount = 2;
@@ -66,8 +72,14 @@ class Swapchain {
         createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
         createInfo.presentMode = presentMode;
         createInfo.clipped = VK_TRUE;
+        try{
+            _swapChain = device._device.createSwapchainKHR(createInfo);
+        }catch (const std::exception& e) {
+            jlog("Unable to create swapchain:");
+            std::cerr << e.what() << std::endl;
+            throw;
+        }
 
-        _swapChain = device._device.createSwapchainKHR(createInfo);
         _swapChainImageFormat = surfaceFormat.format;
 
         
@@ -103,6 +115,16 @@ class Swapchain {
         } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
             throw std::runtime_error("failed to acquire swap chain image!");
         }
+    }
+
+    void cleanup(Device device){
+        device._device.destroyImageView(this->_depthImage._imageView);
+        device._device.destroyImage(this->_depthImage._image);
+        device._device.freeMemory(this->_depthImage._imageMemory);
+        for(auto &img : this->_swapChainImages){
+            device._device.destroyFramebuffer(img._framebuffer);
+        }
+        device._device.destroySwapchainKHR(this->_swapChain, nullptr);
     }
     
     private:
