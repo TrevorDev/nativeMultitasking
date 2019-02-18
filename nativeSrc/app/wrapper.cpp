@@ -56,7 +56,7 @@ void createSwapchain(){
 
   // Create a mesh with a standard material
   // TODO: these shouldnt be dependant on swapchain
-  material.init(renderer._device, renderPass, swapchain);
+  //material.init(renderer._device, renderPass, swapchain);
   // otherMaterial.init(renderer._device, renderPass, swapchain);
 
   // Load in shaders
@@ -111,7 +111,7 @@ void init(const Napi::CallbackInfo& info) {
     jlog("creating meshes");
     meshes.resize(meshCount);
     for(auto &m : meshes){
-      m.init(renderer._device, &material);
+      m.init(renderer._device);
       m.createUniformBuffer(renderer._device, maxSwapchainImgCount);
       m.createDescriptorSet(renderer._device, descSet._descriptorPool,  descSet._descriptorSetLayout, maxSwapchainImgCount);
     }
