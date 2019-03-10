@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../engine/vulkanInc.h"
+#include "../engine/vulkanInc.hpp"
 #include "../engine/glmInc.h"
 #include "../engine/device.cpp"
 #include "../engine/pipeline.cpp"

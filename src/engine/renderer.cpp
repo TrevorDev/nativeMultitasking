@@ -1,17 +1,17 @@
 #pragma once
-#include "j.h"
-#include "vulkanInc.h"
-#include "instance.cpp"
-#include "device.cpp"
+#include "../j.hpp"
+#include "vulkanInc.hpp"
+#include "../engine/instance.cpp"
+#include "../engine/device.cpp"
 #include "../engine/swapchain.cpp"
 #include "../engine/pipeline.cpp"
 #include "../engine/material.cpp"
 
 #include "../engine/glmInc.h"
-#include "object3d/camera.cpp"
-#include "object3d/mesh.cpp"
-#include "object3d/pointLight.cpp"
-#include "object3d/scene.cpp"
+#include "../object3d/camera.cpp"
+#include "../object3d/mesh.cpp"
+#include "../object3d/pointLight.cpp"
+#include "../object3d/scene.cpp"
 
 class Renderer {
     public:
@@ -27,7 +27,8 @@ class Renderer {
     }
 
     void initDevice(VkSurfaceKHR surface){
-        _device.init(surface, _instance._instance.enumeratePhysicalDevices());
+        std::vector<vk::PhysicalDevice> x =  _instance._instance.enumeratePhysicalDevices();
+        _device.init(surface, x);
     }
 
     void getNextImage(Swapchain& swapchain){

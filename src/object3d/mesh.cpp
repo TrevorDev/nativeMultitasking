@@ -1,7 +1,7 @@
 #pragma once
 
-#include "j.h"
-#include "../engine/vulkanInc.h"
+#include "../j.hpp"
+#include "../engine/vulkanInc.hpp"
 #include "../engine/glmInc.h"
 #include "../engine/device.cpp"
 #include "../engine/pipeline.cpp"
@@ -36,9 +36,11 @@ class Mesh : public Node  {
     }
 
     std::vector<vk::CommandBuffer> _commandBuffers = {};
-    void init(Device& device){
+    void init(Device& device, Material* material){
         createVertexBuffer(device);
         createIndexBuffer(device);
+        
+        _materialRef = material;
     }
     
     void createVertexBuffer(Device device) {

@@ -1,5 +1,5 @@
 #pragma once
-#include "vulkanInc.h"
+#include "vulkanInc.hpp"
 #include "device.cpp"
 #include "renderPassAttachment.cpp"
 class RenderPass {

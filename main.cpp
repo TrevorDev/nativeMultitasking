@@ -1,19 +1,22 @@
-#include <napi.h>
+#include "src/engine/vulkanInc.hpp"
 
-#define VK_USE_PLATFORM_WIN32_KHR
-#include "j.h"
-#include "windowManager.cpp"
-#include "engine/renderer.cpp"
-#include "engine/renderPass.cpp"
-#include "engine/swapchain.cpp"
-#include "engine/defaultDescriptorSetLayout.cpp"
+#include <GLFW/glfw3.h>
 
-#include "engine/material.cpp"
-#include "engine/image.cpp"
-#include "object3d/mesh.cpp"
-#include "object3d/scene.cpp"
-#include "object3d/camera.cpp"
-#include "object3d/pointLight.cpp"
+
+#include "src/j.hpp"
+#include "src/windowManager.cpp"
+#include "src/engine/vulkanInc.hpp"
+#include "src/engine/renderer.cpp"
+#include "src/engine/renderPass.cpp"
+#include "src/engine/swapchain.cpp"
+#include "src/engine/defaultDescriptorSetLayout.cpp"
+
+#include "src/engine/material.cpp"
+#include "src/engine/image.cpp"
+#include "src/object3d/mesh.cpp"
+#include "src/object3d/scene.cpp"
+#include "src/object3d/camera.cpp"
+#include "src/object3d/pointLight.cpp"
 
 Renderer renderer;
 vk::SurfaceKHR surface;
@@ -85,74 +88,10 @@ void cleanup(){
   // TODO not everything is properly freed
 }
 
-void init(const Napi::CallbackInfo& info) {
-  jlog("Started!");
-  try{
-    // Create vulkan instance with extensions from display api's and with external memory for compositing
-    std::vector<std::string> intanceExtensions = {
-      VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME,
-      VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME
-    };
-    wm.init(800,600);
-    wm.getRequiredInstanceExtensions(intanceExtensions);
-    
-    // Create renderer with extension
-    renderer.initInstance(intanceExtensions);
-    
-    // Create surface to render to and initialize a device compatable with that surface
-    surface = wm.createSurface(renderer._instance._instance);
-    renderer.initDevice(surface);
-
-    // Create main descriptor set pools
-    descSetScene.init(renderer._device, maxSwapchainImgCount, 1);
-    descSet.init(renderer._device, maxSwapchainImgCount, meshCount);
-
-    // Create descriptor set per mesh
-    jlog("creating meshes");
-    meshes.resize(meshCount);
-    for(auto &m : meshes){
-      m.init(renderer._device);
-      m.createUniformBuffer(renderer._device, maxSwapchainImgCount);
-      m.createDescriptorSet(renderer._device, descSet._descriptorPool,  descSet._descriptorSetLayout, maxSwapchainImgCount);
-    }
-    jlog("creating meshes done");
-    
-    // Create scene buffers and pool
-    scene.createUniformBuffer(renderer._device, maxSwapchainImgCount);
-    scene.createDescriptorSet(renderer._device, descSetScene._descriptorPool,  descSetScene._descriptorSetLayout, maxSwapchainImgCount);
-
-    // Create syncing objects to avoid drawing too quickly
-    renderer._device.createSyncObjects();
-
-    createSwapchain();
-    jlog("Bootup success");
-
-    // Position camera start pose
-    cam.position.z = 3;
-    cam.position.y = 0.5f;
-
-  }catch (const std::exception& e) {
-    jlog("Native code threw an exception:");
-    std::cerr << e.what() << std::endl;
-    throw;
-  }
-}
-
-Napi::Boolean shouldClose(const Napi::CallbackInfo& info) {
-  try{
-    Napi::Env env = info.Env();
-    return Napi::Boolean::New(env, wm.shouldClose());
-  }catch (const std::exception& e) {
-    jlog("Native code threw an exception:");
-    std::cerr << e.what() << std::endl;
-    throw;
-  }
-}
-
 float camRotX = 0.0f;
 float camRotY = 0.0f;
 float spd = 0.01f;
-void render(const Napi::CallbackInfo& info) {
+void render() {
   try{
     wm.update();
     if(wm.keys[262]){
@@ -201,11 +140,72 @@ void render(const Napi::CallbackInfo& info) {
   }
 }
 
-Napi::Object Init(Napi::Env env, Napi::Object exports) {
-  exports.Set(Napi::String::New(env, "init"), Napi::Function::New(env, init));
-  exports.Set(Napi::String::New(env, "shouldClose"), Napi::Function::New(env, shouldClose));
-  exports.Set(Napi::String::New(env, "render"), Napi::Function::New(env, render));
-  return exports;
-}
+int main() 
+{
+    //'glslangValidator.exe -V '+inputFile+" -o "+outputFile
+    try{
+         // Create vulkan instance with extensions from display api's and with external memory for compositing
+        std::vector<std::string> intanceExtensions = {
+        VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME,
+        VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME
+        };
+        wm.init(800,600);
+        wm.getRequiredInstanceExtensions(intanceExtensions);
+        
+        // Create renderer with extension
+        renderer.initInstance(intanceExtensions);
+        
+        // Create surface to render to and initialize a device compatable with that surface
+        surface = wm.createSurface(renderer._instance._instance);
+        renderer.initDevice(surface);
 
-NODE_API_MODULE(app, Init)
+        // Create main descriptor set pools
+        descSetScene.init(renderer._device, maxSwapchainImgCount, 1);
+        descSet.init(renderer._device, maxSwapchainImgCount, meshCount);
+
+        // Create descriptor set per mesh
+        jlog("creating meshes");
+        meshes.resize(meshCount);
+        for(auto &m : meshes){
+            m.init(renderer._device, nullptr);
+            m.createUniformBuffer(renderer._device, maxSwapchainImgCount);
+            m.createDescriptorSet(renderer._device, descSet._descriptorPool,  descSet._descriptorSetLayout, maxSwapchainImgCount);
+        }
+        jlog("creating meshes done");
+        
+        // Create scene buffers and pool
+        scene.createUniformBuffer(renderer._device, maxSwapchainImgCount);
+        scene.createDescriptorSet(renderer._device, descSetScene._descriptorPool,  descSetScene._descriptorSetLayout, maxSwapchainImgCount);
+
+        // Create syncing objects to avoid drawing too quickly
+        renderer._device.createSyncObjects();
+
+        createSwapchain();
+        jlog("Bootup success");
+
+        // Position camera start pose
+        cam.position.z = 3;
+        cam.position.y = 0.5f;
+        
+        while(!wm.shouldClose()){
+            render();
+        }
+    }catch (const char* e) {
+        jlog("Native code threw an exception:");
+        std::cerr << e << std::endl;
+        throw;
+    }catch (const std::string& e) {
+        jlog("Native code threw an exception:");
+        std::cerr << e << std::endl;
+        throw;
+    }catch (const std::exception& e) {
+        jlog("Native code threw an exception:");
+        std::cerr << e.what() << std::endl;
+        throw;
+    }catch (...) {
+        jlog("Unknown native exception occured");
+        throw;
+    }
+    
+    return 0;
+}

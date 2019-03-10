@@ -1,12 +1,12 @@
 #pragma once
 
-#include "j.h"
-#include "vulkanInc.h"
+#include "../j.hpp"
+#include "vulkanInc.hpp"
 
-#include "engine/descriptorSetLayout.cpp"
-#include "engine/shader.cpp"
-#include "engine/pipeline.cpp"
-#include "engine/device.cpp"
+#include "descriptorSetLayout.cpp"
+#include "shader.cpp"
+#include "pipeline.cpp"
+#include "device.cpp"
 
 class Material {
     public:

@@ -1,5 +1,6 @@
+*.exe
+compile_flags.txt
 .vscode
-nativeSrc/build/
 node_modules/
 *.spv
 .vs

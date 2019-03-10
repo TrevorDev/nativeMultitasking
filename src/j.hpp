@@ -1,7 +1,9 @@
 #pragma once
+
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <vector> 
 
 void jlog(void* obj) {
 	std::cout << obj << std::endl;

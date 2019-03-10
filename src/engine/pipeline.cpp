@@ -1,8 +1,8 @@
 #pragma once
 
-#include "j.h"
+#include "../j.hpp"
 #include "glmInc.h"
-#include "vulkanInc.h"
+#include "vulkanInc.hpp"
 #include "shader.cpp"
 #include "swapchain.cpp"
 #include "device.cpp"

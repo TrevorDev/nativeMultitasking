@@ -1,7 +1,7 @@
 #pragma once
 
-#include "j.h"
-#include "vulkanInc.h"
+#include "../j.hpp"
+#include "vulkanInc.hpp"
 #include "device.cpp"
 
 class DescriptorSetLayout {

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "j.h"
-#include "vulkanInc.h"
+#include "../j.hpp"
+#include "vulkanInc.hpp"
 #include "../engine/glmInc.h"
 
 int MAX_FRAMES_IN_FLIGHT = 2;
