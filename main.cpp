@@ -1,7 +1,7 @@
 #include "src/engine/vulkanInc.hpp"
 
 #include <GLFW/glfw3.h>
-
+#include <sstream> 
 
 #include "src/j.hpp"
 #include "src/windowManager.cpp"
@@ -10,6 +10,7 @@
 #include "src/engine/renderPass.cpp"
 #include "src/engine/swapchain.cpp"
 #include "src/engine/defaultDescriptorSetLayout.cpp"
+#include "src/engine/shaderCompile.cpp"
 
 #include "src/engine/material.cpp"
 #include "src/engine/image.cpp"
@@ -142,69 +143,70 @@ void render() {
 
 int main() 
 {
-    //'glslangValidator.exe -V '+inputFile+" -o "+outputFile
     try{
-         // Create vulkan instance with extensions from display api's and with external memory for compositing
-        std::vector<std::string> intanceExtensions = {
-        VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME,
-        VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME
-        };
-        wm.init(800,600);
-        wm.getRequiredInstanceExtensions(intanceExtensions);
-        
-        // Create renderer with extension
-        renderer.initInstance(intanceExtensions);
-        
-        // Create surface to render to and initialize a device compatable with that surface
-        surface = wm.createSurface(renderer._instance._instance);
-        renderer.initDevice(surface);
+      compileShader("shaders/shader.vert", "shaders/vert.spv");
+      compileShader("shaders/shader.frag", "shaders/frag.spv");
+      // Create vulkan instance with extensions from display api's and with external memory for compositing
+      std::vector<std::string> intanceExtensions = {
+      VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME,
+      VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME
+      };
+      wm.init(800,600);
+      wm.getRequiredInstanceExtensions(intanceExtensions);
+      
+      // Create renderer with extension
+      renderer.initInstance(intanceExtensions);
+      
+      // Create surface to render to and initialize a device compatable with that surface
+      surface = wm.createSurface(renderer._instance._instance);
+      renderer.initDevice(surface);
 
-        // Create main descriptor set pools
-        descSetScene.init(renderer._device, maxSwapchainImgCount, 1);
-        descSet.init(renderer._device, maxSwapchainImgCount, meshCount);
+      // Create main descriptor set pools
+      descSetScene.init(renderer._device, maxSwapchainImgCount, 1);
+      descSet.init(renderer._device, maxSwapchainImgCount, meshCount);
 
-        // Create descriptor set per mesh
-        jlog("creating meshes");
-        meshes.resize(meshCount);
-        for(auto &m : meshes){
-            m.init(renderer._device, nullptr);
-            m.createUniformBuffer(renderer._device, maxSwapchainImgCount);
-            m.createDescriptorSet(renderer._device, descSet._descriptorPool,  descSet._descriptorSetLayout, maxSwapchainImgCount);
-        }
-        jlog("creating meshes done");
-        
-        // Create scene buffers and pool
-        scene.createUniformBuffer(renderer._device, maxSwapchainImgCount);
-        scene.createDescriptorSet(renderer._device, descSetScene._descriptorPool,  descSetScene._descriptorSetLayout, maxSwapchainImgCount);
+      // Create descriptor set per mesh
+      jlog("creating meshes");
+      meshes.resize(meshCount);
+      for(auto &m : meshes){
+          m.init(renderer._device, nullptr);
+          m.createUniformBuffer(renderer._device, maxSwapchainImgCount);
+          m.createDescriptorSet(renderer._device, descSet._descriptorPool,  descSet._descriptorSetLayout, maxSwapchainImgCount);
+      }
+      jlog("creating meshes done");
+      
+      // Create scene buffers and pool
+      scene.createUniformBuffer(renderer._device, maxSwapchainImgCount);
+      scene.createDescriptorSet(renderer._device, descSetScene._descriptorPool,  descSetScene._descriptorSetLayout, maxSwapchainImgCount);
 
-        // Create syncing objects to avoid drawing too quickly
-        renderer._device.createSyncObjects();
+      // Create syncing objects to avoid drawing too quickly
+      renderer._device.createSyncObjects();
 
-        createSwapchain();
-        jlog("Bootup success");
+      createSwapchain();
+      jlog("Bootup success");
 
-        // Position camera start pose
-        cam.position.z = 3;
-        cam.position.y = 0.5f;
-        
-        while(!wm.shouldClose()){
-            render();
-        }
+      // Position camera start pose
+      cam.position.z = 3;
+      cam.position.y = 0.5f;
+      
+      while(!wm.shouldClose()){
+          render();
+      }
     }catch (const char* e) {
-        jlog("Native code threw an exception:");
-        std::cerr << e << std::endl;
-        throw;
+      jlog("Native code threw an exception:");
+      std::cerr << e << std::endl;
+      throw;
     }catch (const std::string& e) {
-        jlog("Native code threw an exception:");
-        std::cerr << e << std::endl;
-        throw;
+      jlog("Native code threw an exception:");
+      std::cerr << e << std::endl;
+      throw;
     }catch (const std::exception& e) {
-        jlog("Native code threw an exception:");
-        std::cerr << e.what() << std::endl;
-        throw;
+      jlog("Native code threw an exception:");
+      std::cerr << e.what() << std::endl;
+      throw;
     }catch (...) {
-        jlog("Unknown native exception occured");
-        throw;
+      jlog("Unknown native exception occured");
+      throw;
     }
     
     return 0;
