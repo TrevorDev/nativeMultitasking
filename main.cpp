@@ -58,20 +58,12 @@ void createSwapchain(){
     im.createFrameBuffer(swapchain._depthImage, renderPass, swapchain._swapChainExtent.width, swapchain._swapChainExtent.height);
   }
 
-  // Create a mesh with a standard material
-  // TODO: these shouldnt be dependant on swapchain
-  //material.init(renderer._device, renderPass, swapchain);
-  // otherMaterial.init(renderer._device, renderPass, swapchain);
-
-  // Load in shaders
-  vertShader.init(renderer._device, "shaders/vert.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT);
-  fragShader.init(renderer._device, "shaders/frag.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT);
-
   // Creates the pipeline to render color + depth using shaders
   pipeline.init(renderer._device, swapchain._swapChainExtent.width, swapchain._swapChainExtent.height, {vertShader, fragShader}, descSetScene._descriptorSetLayout, descSet._descriptorSetLayout, renderPass);
   
   renderer.createCommandBuffers(renderer._device, pipeline, swapchain, renderPass, scene, meshes);
   
+  // set camera projection to match output
   cam.projectionWidth = swapchain._swapChainExtent.width;
   cam.projectionHeight = swapchain._swapChainExtent.height;
 }
@@ -89,57 +81,7 @@ void cleanup(){
   // TODO not everything is properly freed
 }
 
-float camRotX = 0.0f;
-float camRotY = 0.0f;
-float spd = 0.01f;
-void render() {
-  try{
-    wm.update();
-    if(wm.keys[262]){
-      // Right
-      cam.position.x += spd;
-    }
-    if(wm.keys[263]){
-      // Left
-      cam.position.x -= spd;
-    }
-    if(wm.keys[264]){
-      // Down
-      cam.position.z += spd;
-    }
-    if(wm.keys[265]){
-      // Up
-      cam.position.z -= spd;
-    }
 
-    if(wm.mouseDown){
-      camRotY += (float)(-wm.lastCursorPosDifX/1000.0);
-      camRotX += (float)(-wm.lastCursorPosDifY/1000.0);
-    }
-
-    Quaternion::FromEuler(camRotX,camRotY,0, cam.rotation);
-
-    cam.computeWorldMatrix();
-    cam.computeViewMatrix();
-
-    int pos = 0;
-    for(auto &mesh : meshes){
-      mesh.position.x = pos;
-      mesh.position.y = pos/100.0;
-      mesh.position.z = -pos;
-      pos+=1;
-    }
-
-    renderer.getNextImage(swapchain);
-    renderer.drawFrame(swapchain,cam, scene, meshes);
-    renderer.presentFrame(swapchain);
-
-  }catch (const std::exception& e) {
-    // TODO only do this on the proper exception
-    cleanup();
-    createSwapchain();
-  }
-}
 
 int main() 
 {
@@ -156,10 +98,16 @@ int main()
       
       // Create renderer with extension
       renderer.initInstance(intanceExtensions);
+
+        
       
       // Create surface to render to and initialize a device compatable with that surface
       surface = wm.createSurface(renderer._instance._instance);
       renderer.initDevice(surface);
+
+      // Load in shaders
+      vertShader.init(renderer._device, "shaders/vert.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT);
+      fragShader.init(renderer._device, "shaders/frag.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT);
 
       // Create main descriptor set pools
       descSetScene.init(renderer._device, maxSwapchainImgCount, 1);
@@ -182,6 +130,7 @@ int main()
       // Create syncing objects to avoid drawing too quickly
       renderer._device.createSyncObjects();
 
+      
       createSwapchain();
       jlog("Bootup success");
 
@@ -189,8 +138,56 @@ int main()
       cam.position.z = 3;
       cam.position.y = 0.5f;
       
+      float camRotX = 0.0f;
+      float camRotY = 0.0f;
+      float spd = 0.01f;
       while(!wm.shouldClose()){
-          render();
+          try{
+            wm.update();
+            if(wm.keys[262]){
+              // Right
+              cam.position.x += spd;
+            }
+            if(wm.keys[263]){
+              // Left
+              cam.position.x -= spd;
+            }
+            if(wm.keys[264]){
+              // Down
+              cam.position.z += spd;
+            }
+            if(wm.keys[265]){
+              // Up
+              cam.position.z -= spd;
+            }
+
+            if(wm.mouseDown){
+              camRotY += (float)(-wm.lastCursorPosDifX/1000.0);
+              camRotX += (float)(-wm.lastCursorPosDifY/1000.0);
+            }
+
+            Quaternion::FromEuler(camRotX,camRotY,0, cam.rotation);
+
+            cam.computeWorldMatrix();
+            cam.computeViewMatrix();
+
+            int pos = 0;
+            for(auto &mesh : meshes){
+              mesh.position.x = pos;
+              mesh.position.y = pos/100.0;
+              mesh.position.z = -pos;
+              pos+=1;
+            }
+
+            renderer.getNextImage(swapchain);
+            renderer.drawFrame(swapchain,cam, scene, meshes);
+            renderer.presentFrame(swapchain);
+
+          }catch (const std::exception& e) {
+            // TODO only do this on the proper exception
+            cleanup();
+            createSwapchain();
+          }
       }
     }catch (const char* e) {
       jlog("Native code threw an exception:");
