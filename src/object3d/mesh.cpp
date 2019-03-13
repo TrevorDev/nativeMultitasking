@@ -5,6 +5,8 @@
 #include "../engine/glmInc.h"
 #include "../engine/device.cpp"
 #include "../engine/pipeline.cpp"
+#include "../object3d/node.cpp"
+#include "../engine/material.cpp"
 
 
 class Mesh : public Node  {

@@ -19,6 +19,8 @@
 #include "src/object3d/camera.cpp"
 #include "src/object3d/pointLight.cpp"
 
+#include "src/object3d/freeCameraInput.cpp"
+
 Renderer renderer;
 vk::SurfaceKHR surface;
 WindowManager wm;
@@ -35,8 +37,8 @@ Shader vertShader;
 Shader fragShader;
 Pipeline pipeline;
 
-DefaultDescriptorSet descSetScene;
-DefaultDescriptorSet descSet;
+DefaultDescriptorSet sceneDescSet;
+DefaultDescriptorSet meshDescSet;
 
 int meshCount = 500;
 uint32_t maxSwapchainImgCount = 2;
@@ -59,8 +61,7 @@ void createSwapchain(){
   }
 
   // Creates the pipeline to render color + depth using shaders
-  pipeline.init(renderer._device, swapchain._swapChainExtent.width, swapchain._swapChainExtent.height, {vertShader, fragShader}, descSetScene._descriptorSetLayout, descSet._descriptorSetLayout, renderPass);
-  
+  pipeline.init(renderer._device, swapchain._swapChainExtent.width, swapchain._swapChainExtent.height, {vertShader, fragShader}, sceneDescSet._descriptorSetLayout, meshDescSet._descriptorSetLayout, renderPass);
   renderer.createCommandBuffers(renderer._device, pipeline, swapchain, renderPass, scene, meshes);
   
   // set camera projection to match output
@@ -81,17 +82,13 @@ void cleanup(){
   // TODO not everything is properly freed
 }
 
-
-
 int main() 
 {
     try{
-      compileShader("shaders/shader.vert", "shaders/vert.spv");
-      compileShader("shaders/shader.frag", "shaders/frag.spv");
       // Create vulkan instance with extensions from display api's and with external memory for compositing
       std::vector<std::string> intanceExtensions = {
-      VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME,
-      VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME
+        VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME,
+        VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME
       };
       wm.init(800,600);
       wm.getRequiredInstanceExtensions(intanceExtensions);
@@ -99,19 +96,28 @@ int main()
       // Create renderer with extension
       renderer.initInstance(intanceExtensions);
 
-        
-      
       // Create surface to render to and initialize a device compatable with that surface
       surface = wm.createSurface(renderer._instance._instance);
       renderer.initDevice(surface);
 
-      // Load in shaders
+      // compile and load shaders
+      compileShader("shaders/shader.vert", "shaders/vert.spv");
+      compileShader("shaders/shader.frag", "shaders/frag.spv");
       vertShader.init(renderer._device, "shaders/vert.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT);
       fragShader.init(renderer._device, "shaders/frag.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT);
 
       // Create main descriptor set pools
-      descSetScene.init(renderer._device, maxSwapchainImgCount, 1);
-      descSet.init(renderer._device, maxSwapchainImgCount, meshCount);
+      sceneDescSet.init(renderer._device, maxSwapchainImgCount, 1);
+      meshDescSet.init(renderer._device, maxSwapchainImgCount, meshCount);
+
+      // Create scene buffers and pool
+      scene.createUniformBuffer(renderer._device, maxSwapchainImgCount);
+      scene.createDescriptorSet(renderer._device, sceneDescSet._descriptorPool,  sceneDescSet._descriptorSetLayout, maxSwapchainImgCount);
+
+      // Position camera start pose and handle camera movement
+      FreeCameraInput cameraInput = FreeCameraInput(cam, wm);
+      cam.position.z = 3;
+      cam.position.y = 0.5f;
 
       // Create descriptor set per mesh
       jlog("creating meshes");
@@ -119,65 +125,27 @@ int main()
       for(auto &m : meshes){
           m.init(renderer._device, nullptr);
           m.createUniformBuffer(renderer._device, maxSwapchainImgCount);
-          m.createDescriptorSet(renderer._device, descSet._descriptorPool,  descSet._descriptorSetLayout, maxSwapchainImgCount);
+          m.createDescriptorSet(renderer._device, meshDescSet._descriptorPool,  meshDescSet._descriptorSetLayout, maxSwapchainImgCount);
+      }
+      int pos = 0;
+      for(auto &mesh : meshes){
+        mesh.position.x = pos;
+        mesh.position.y = pos/100.0;
+        mesh.position.z = -pos;
+        pos+=1;
       }
       jlog("creating meshes done");
-      
-      // Create scene buffers and pool
-      scene.createUniformBuffer(renderer._device, maxSwapchainImgCount);
-      scene.createDescriptorSet(renderer._device, descSetScene._descriptorPool,  descSetScene._descriptorSetLayout, maxSwapchainImgCount);
 
       // Create syncing objects to avoid drawing too quickly
       renderer._device.createSyncObjects();
-
       
       createSwapchain();
       jlog("Bootup success");
 
-      // Position camera start pose
-      cam.position.z = 3;
-      cam.position.y = 0.5f;
-      
-      float camRotX = 0.0f;
-      float camRotY = 0.0f;
-      float spd = 0.01f;
       while(!wm.shouldClose()){
           try{
             wm.update();
-            if(wm.keys[262]){
-              // Right
-              cam.position.x += spd;
-            }
-            if(wm.keys[263]){
-              // Left
-              cam.position.x -= spd;
-            }
-            if(wm.keys[264]){
-              // Down
-              cam.position.z += spd;
-            }
-            if(wm.keys[265]){
-              // Up
-              cam.position.z -= spd;
-            }
-
-            if(wm.mouseDown){
-              camRotY += (float)(-wm.lastCursorPosDifX/1000.0);
-              camRotX += (float)(-wm.lastCursorPosDifY/1000.0);
-            }
-
-            Quaternion::FromEuler(camRotX,camRotY,0, cam.rotation);
-
-            cam.computeWorldMatrix();
-            cam.computeViewMatrix();
-
-            int pos = 0;
-            for(auto &mesh : meshes){
-              mesh.position.x = pos;
-              mesh.position.y = pos/100.0;
-              mesh.position.z = -pos;
-              pos+=1;
-            }
+            cameraInput.update();
 
             renderer.getNextImage(swapchain);
             renderer.drawFrame(swapchain,cam, scene, meshes);
