@@ -2,8 +2,8 @@
 
 #include "../j.hpp"
 #include "vulkanInc.hpp"
-#include "device.cpp"
-#include "image.cpp"
+#include "device.hpp"
+#include "image.hpp"
 
 struct SwapChainSupportDetails {
     VkSurfaceCapabilitiesKHR capabilities;

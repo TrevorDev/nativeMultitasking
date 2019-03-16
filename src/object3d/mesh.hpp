@@ -3,10 +3,10 @@
 #include "../j.hpp"
 #include "../engine/vulkanInc.hpp"
 #include "../engine/glmInc.h"
-#include "../engine/device.cpp"
-#include "../engine/pipeline.cpp"
-#include "../object3d/node.cpp"
-#include "../engine/material.cpp"
+#include "../engine/device.hpp"
+#include "../engine/pipeline.hpp"
+#include "../object3d/node.hpp"
+#include "../engine/material.hpp"
 
 
 class Mesh : public Node  {

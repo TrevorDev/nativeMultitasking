@@ -1,7 +1,7 @@
 #pragma once
 #include "vulkanInc.hpp"
-#include "device.cpp"
-#include "renderPassAttachment.cpp"
+#include "device.hpp"
+#include "renderPassAttachment.hpp"
 class RenderPass {
     public:
     vk::RenderPass _renderPass;

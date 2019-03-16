@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../math/quaternion.cpp"
-#include "../math/vector3.cpp"
-#include "../math/matrix4.cpp"
-#include "../object3d/camera.cpp"
-#include "../windowManager.cpp"
+#include "../math/quaternion.hpp"
+#include "../math/vector3.hpp"
+#include "../math/matrix4.hpp"
+#include "../object3d/camera.hpp"
+#include "../windowManager.hpp"
 
 class FreeCameraInput {
     Camera& camera;

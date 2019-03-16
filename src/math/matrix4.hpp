@@ -1,7 +1,7 @@
 #pragma once
 
-#include "quaternion.cpp"
-#include "vector3.cpp"
+#include "quaternion.hpp"
+#include "vector3.hpp"
 
 class Matrix4{
     public:

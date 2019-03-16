@@ -2,8 +2,8 @@
 
 #include "../engine/vulkanInc.hpp"
 #include "../engine/glmInc.h"
-#include "../engine/device.cpp"
-#include "../engine/pipeline.cpp"
+#include "../engine/device.hpp"
+#include "../engine/pipeline.hpp"
 
 class Scene {
     public:

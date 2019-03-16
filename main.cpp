@@ -4,22 +4,22 @@
 #include <sstream> 
 
 #include "src/j.hpp"
-#include "src/windowManager.cpp"
+#include "src/windowManager.hpp"
 #include "src/engine/vulkanInc.hpp"
-#include "src/engine/renderer.cpp"
-#include "src/engine/renderPass.cpp"
-#include "src/engine/swapchain.cpp"
-#include "src/engine/defaultDescriptorSetLayout.cpp"
-#include "src/engine/shaderCompile.cpp"
+#include "src/engine/renderer.hpp"
+#include "src/engine/renderPass.hpp"
+#include "src/engine/swapchain.hpp"
+#include "src/engine/defaultDescriptorSetLayout.hpp"
+#include "src/engine/shaderCompile.hpp"
 
-#include "src/engine/material.cpp"
-#include "src/engine/image.cpp"
-#include "src/object3d/mesh.cpp"
-#include "src/object3d/scene.cpp"
-#include "src/object3d/camera.cpp"
-#include "src/object3d/pointLight.cpp"
+#include "src/engine/material.hpp"
+#include "src/engine/image.hpp"
+#include "src/object3d/mesh.hpp"
+#include "src/object3d/scene.hpp"
+#include "src/object3d/camera.hpp"
+#include "src/object3d/pointLight.hpp"
 
-#include "src/object3d/freeCameraInput.cpp"
+#include "src/object3d/freeCameraInput.hpp"
 
 Renderer renderer;
 vk::SurfaceKHR surface;

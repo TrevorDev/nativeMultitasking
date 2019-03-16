@@ -3,10 +3,10 @@
 #include "../j.hpp"
 #include "vulkanInc.hpp"
 
-#include "descriptorSetLayout.cpp"
-#include "shader.cpp"
-#include "pipeline.cpp"
-#include "device.cpp"
+#include "descriptorSetLayout.hpp"
+#include "shader.hpp"
+#include "pipeline.hpp"
+#include "device.hpp"
 
 class Material {
     public:

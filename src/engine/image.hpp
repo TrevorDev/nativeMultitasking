@@ -2,8 +2,8 @@
 
 #include "../j.hpp"
 #include "vulkanInc.hpp"
-#include "device.cpp"
-#include "renderPass.cpp"
+#include "device.hpp"
+#include "renderPass.hpp"
 class Image {
     public:
     vk::Image _image;

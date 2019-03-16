@@ -2,7 +2,7 @@
 
 #include "../j.hpp"
 #include "vulkanInc.hpp"
-#include "device.cpp"
+#include "device.hpp"
 
 class DescriptorSetLayout {
     public:

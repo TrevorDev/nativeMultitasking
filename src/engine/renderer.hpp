@@ -1,17 +1,17 @@
 #pragma once
 #include "../j.hpp"
 #include "vulkanInc.hpp"
-#include "../engine/instance.cpp"
-#include "../engine/device.cpp"
-#include "../engine/swapchain.cpp"
-#include "../engine/pipeline.cpp"
-#include "../engine/material.cpp"
+#include "../engine/instance.hpp"
+#include "../engine/device.hpp"
+#include "../engine/swapchain.hpp"
+#include "../engine/pipeline.hpp"
+#include "../engine/material.hpp"
 
 #include "../engine/glmInc.h"
-#include "../object3d/camera.cpp"
-#include "../object3d/mesh.cpp"
-#include "../object3d/pointLight.cpp"
-#include "../object3d/scene.cpp"
+#include "../object3d/camera.hpp"
+#include "../object3d/mesh.hpp"
+#include "../object3d/pointLight.hpp"
+#include "../object3d/scene.hpp"
 
 class Renderer {
     public:

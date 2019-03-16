@@ -3,11 +3,11 @@
 #include "../j.hpp"
 #include "glmInc.h"
 #include "vulkanInc.hpp"
-#include "shader.cpp"
-#include "swapchain.cpp"
-#include "device.cpp"
-#include "renderPass.cpp"
-#include "descriptorSetLayout.cpp"
+#include "shader.hpp"
+#include "swapchain.hpp"
+#include "device.hpp"
+#include "renderPass.hpp"
+#include "descriptorSetLayout.hpp"
 
 struct Vertex {
         glm::vec3 pos;
