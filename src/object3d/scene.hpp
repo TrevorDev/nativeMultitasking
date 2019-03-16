@@ -4,6 +4,7 @@
 #include "../engine/glmInc.h"
 #include "../engine/device.hpp"
 #include "../engine/pipeline.hpp"
+#include "camera.hpp"
 
 class Scene {
     public:

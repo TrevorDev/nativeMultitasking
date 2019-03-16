@@ -5,7 +5,6 @@
 #include "../engine/device.hpp"
 #include "../engine/swapchain.hpp"
 #include "../engine/pipeline.hpp"
-#include "../engine/material.hpp"
 
 #include "../engine/glmInc.h"
 #include "../object3d/camera.hpp"

@@ -12,7 +12,7 @@
 #include "src/engine/defaultDescriptorSetLayout.hpp"
 #include "src/engine/shaderCompile.hpp"
 
-#include "src/engine/material.hpp"
+#include "src/engine/sceneRenderSetup.hpp"
 #include "src/engine/image.hpp"
 #include "src/object3d/mesh.hpp"
 #include "src/object3d/scene.hpp"
@@ -30,15 +30,14 @@ Camera cam;
 Swapchain swapchain;
 RenderPass renderPass;
 
-Material material;
-Material otherMaterial;
-
 Shader vertShader;
 Shader fragShader;
 Pipeline pipeline;
 
 DefaultDescriptorSet sceneDescSet;
 DefaultDescriptorSet meshDescSet;
+
+SceneRenderSetup sceneRenderSetup;
 
 int meshCount = 500;
 uint32_t maxSwapchainImgCount = 2;
@@ -123,7 +122,7 @@ int main()
       jlog("creating meshes");
       meshes.resize(meshCount);
       for(auto &m : meshes){
-          m.init(renderer._device, nullptr);
+          m.init(renderer._device);
           m.createUniformBuffer(renderer._device, maxSwapchainImgCount);
           m.createDescriptorSet(renderer._device, meshDescSet._descriptorPool,  meshDescSet._descriptorSetLayout, maxSwapchainImgCount);
       }

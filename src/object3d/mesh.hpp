@@ -6,7 +6,6 @@
 #include "../engine/device.hpp"
 #include "../engine/pipeline.hpp"
 #include "../object3d/node.hpp"
-#include "../engine/material.hpp"
 
 
 class Mesh : public Node  {
@@ -31,18 +30,14 @@ class Mesh : public Node  {
     vk::DeviceMemory _vertexBufferMemory;
     vk::Buffer _indexBuffer;
     vk::DeviceMemory _indexBufferMemory;
-
-    Material* _materialRef;
     Mesh(){
         
     }
 
     std::vector<vk::CommandBuffer> _commandBuffers = {};
-    void init(Device& device, Material* material){
+    void init(Device& device){
         createVertexBuffer(device);
         createIndexBuffer(device);
-        
-        _materialRef = material;
     }
     
     void createVertexBuffer(Device device) {
