@@ -56,13 +56,18 @@ var main = async()=>{
             " /I "+buildConfig.includeDirs.join(" /I ")+
             " "+buildConfig.options.join(" ")+" -Xclang -std="+buildConfig.stdVersion
         )
-
         console.log(">: "+buildCmd)
         const util = require('util');
-        const exec = util.promisify(require('child_process').exec);
-        const { stdout, stderr } = await exec(buildCmd);
-        console.log(stdout);
-        console.log(stderr);
+        try{
+            const exec = util.promisify(require('child_process').exec);
+            const { stdout, stderr } = await exec(buildCmd);
+            console.log(stdout);
+            console.log(stderr);
+        }catch(e){
+            console.log('\x1b[33m%s\x1b[0m', e);
+        }
+        
+        
     }else if(cmd == "generateAutoCompleteFile"){
         const fs = require('fs');
         var includes = "-I"+buildConfig.includeDirs.join("\n-I")+"\n-std="+buildConfig.stdVersion

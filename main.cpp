@@ -18,32 +18,18 @@
 #include "src/object3d/scene.hpp"
 #include "src/object3d/camera.hpp"
 #include "src/object3d/pointLight.hpp"
-
 #include "src/object3d/freeCameraInput.hpp"
 
 Renderer renderer;
 vk::SurfaceKHR surface;
 WindowManager wm;
 
-Camera cam;
-
 Swapchain swapchain;
-RenderPass renderPass;
-
-Shader vertShader;
-Shader fragShader;
-Pipeline pipeline;
-
-DefaultDescriptorSet sceneDescSet;
-DefaultDescriptorSet meshDescSet;
 
 SceneRenderSetup sceneRenderSetup;
+SceneRenderInstance sceneRenderInstance;
 
-int meshCount = 500;
 uint32_t maxSwapchainImgCount = 2;
-
-std::vector<Mesh> meshes = {};
-Scene scene;
 
 void createSwapchain(){
   jlog("Creating swapchain");
@@ -52,20 +38,11 @@ void createSwapchain(){
 
   // create swapchain and renderpass with color + depth
   swapchain.init(surface, wm.getFramebufferSize().width, wm.getFramebufferSize().height, renderer._device, maxSwapchainImgCount);
-  renderPass.init(renderer._device, swapchain._swapChainImageFormat, renderer._device.findDepthFormat());
-
-  // Initalize swapcahin images as framebuffers which makes them able to be drawn to
-  for(auto& im : swapchain._swapChainImages){
-    im.createFrameBuffer(swapchain._depthImage, renderPass, swapchain._swapChainExtent.width, swapchain._swapChainExtent.height);
-  }
-
-  // Creates the pipeline to render color + depth using shaders
-  pipeline.init(renderer._device, swapchain._swapChainExtent.width, swapchain._swapChainExtent.height, {vertShader, fragShader}, sceneDescSet._descriptorSetLayout, meshDescSet._descriptorSetLayout, renderPass);
-  renderer.createCommandBuffers(renderer._device, pipeline, swapchain, renderPass, scene, meshes);
+  sceneRenderInstance.init(&renderer._device, &sceneRenderSetup, swapchain._swapChainImages, swapchain._swapChainImageFormat, swapchain._depthImage, swapchain._swapChainExtent);
   
   // set camera projection to match output
-  cam.projectionWidth = swapchain._swapChainExtent.width;
-  cam.projectionHeight = swapchain._swapChainExtent.height;
+  sceneRenderSetup.cam.projectionWidth = swapchain._swapChainExtent.width;
+  sceneRenderSetup.cam.projectionHeight = swapchain._swapChainExtent.height;
 }
 
 void cleanup(){
@@ -75,8 +52,8 @@ void cleanup(){
 
   // Reset swapchain
   swapchain.cleanup(renderer._device);
-  renderer._device._device.freeCommandBuffers(renderer._device._commandPool, static_cast<uint32_t>(renderer._commandBuffers.size()), renderer._commandBuffers.data());
-  renderer._commandBuffers = {};
+  renderer._device._device.freeCommandBuffers(renderer._device._commandPool, static_cast<uint32_t>(sceneRenderInstance._commandBuffers.size()), sceneRenderInstance._commandBuffers.data());
+  sceneRenderInstance._commandBuffers = {};
 
   // TODO not everything is properly freed
 }
@@ -99,41 +76,12 @@ int main()
       surface = wm.createSurface(renderer._instance._instance);
       renderer.initDevice(surface);
 
-      // compile and load shaders
-      compileShader("shaders/shader.vert", "shaders/vert.spv");
-      compileShader("shaders/shader.frag", "shaders/frag.spv");
-      vertShader.init(renderer._device, "shaders/vert.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT);
-      fragShader.init(renderer._device, "shaders/frag.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT);
-
-      // Create main descriptor set pools
-      sceneDescSet.init(renderer._device, maxSwapchainImgCount, 1);
-      meshDescSet.init(renderer._device, maxSwapchainImgCount, meshCount);
-
-      // Create scene buffers and pool
-      scene.createUniformBuffer(renderer._device, maxSwapchainImgCount);
-      scene.createDescriptorSet(renderer._device, sceneDescSet._descriptorPool,  sceneDescSet._descriptorSetLayout, maxSwapchainImgCount);
+      sceneRenderSetup.init(&renderer._device);
 
       // Position camera start pose and handle camera movement
-      FreeCameraInput cameraInput = FreeCameraInput(cam, wm);
-      cam.position.z = 3;
-      cam.position.y = 0.5f;
-
-      // Create descriptor set per mesh
-      jlog("creating meshes");
-      meshes.resize(meshCount);
-      for(auto &m : meshes){
-          m.init(renderer._device);
-          m.createUniformBuffer(renderer._device, maxSwapchainImgCount);
-          m.createDescriptorSet(renderer._device, meshDescSet._descriptorPool,  meshDescSet._descriptorSetLayout, maxSwapchainImgCount);
-      }
-      int pos = 0;
-      for(auto &mesh : meshes){
-        mesh.position.x = pos;
-        mesh.position.y = pos/100.0;
-        mesh.position.z = -pos;
-        pos+=1;
-      }
-      jlog("creating meshes done");
+      FreeCameraInput cameraInput = FreeCameraInput(sceneRenderSetup.cam, wm);
+      sceneRenderSetup.cam.position.z = 3;
+      sceneRenderSetup.cam.position.y = 0.5f;
 
       // Create syncing objects to avoid drawing too quickly
       renderer._device.createSyncObjects();
@@ -147,8 +95,8 @@ int main()
             cameraInput.update();
 
             renderer.getNextImage(swapchain);
-            renderer.drawFrame(swapchain,cam, scene, meshes);
-            renderer.presentFrame(swapchain);
+            sceneRenderInstance.render(swapchain._currentImageIndex, swapchain._currentFrame);
+            renderer.presentFrame(swapchain, sceneRenderInstance.signalSemaphores);
 
           }catch (const std::exception& e) {
             // TODO only do this on the proper exception

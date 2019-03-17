@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../engine/vulkanInc.hpp"
 #include "../j.hpp"
 #include <sstream> 
