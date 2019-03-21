@@ -1,0 +1,22 @@
+scene
+    meshes
+    lights
+    activeCamera
+
+sceneRenderer
+    globalState
+        lights
+        activeCamera
+    materials
+        vertShaders
+        fragShaders
+        textures
+        meshesToDraw
+
+RenderSetup
+    createCommandBuffers
+    createRenderInstanceForImage
+
+RenderInstance
+    Render
+    dispose
