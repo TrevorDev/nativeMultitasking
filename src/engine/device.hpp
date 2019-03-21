@@ -69,7 +69,7 @@ class Device {
             }
 
             // Check swapchain support (TODO should this use querySwapChainSupport?)
-            auto capabilities = device.getSurfaceCapabilitiesKHR(surface);
+            //auto capabilities = device.getSurfaceCapabilitiesKHR(surface);
             auto formats = device.getSurfaceFormatsKHR(surface);
             auto presentModes = device.getSurfacePresentModesKHR(surface);
             
@@ -301,7 +301,7 @@ class Device {
     std::vector<vk::Semaphore> _renderFinishedSemaphores;
     std::vector<vk::Fence> _inFlightFences;
 
-        void createSyncObjects() {
+    void createSyncObjects() {
         _imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
         _renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
         _inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);

@@ -106,7 +106,7 @@ class Swapchain {
 
     void getNextImage(Device& device){
         VkResult result = vkAcquireNextImageKHR(device._device, _swapChain, std::numeric_limits<uint64_t>::max(), device._imageAvailableSemaphores[_currentFrame], VK_NULL_HANDLE, &_currentImageIndex);
-
+        //jlog(_currentImageIndex);
         if (result == VK_ERROR_OUT_OF_DATE_KHR) {
             // TODO recreate swapchain here
             //recreateSwapChain();

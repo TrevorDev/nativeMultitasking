@@ -21,14 +21,13 @@ class SceneRenderSetup {
     DefaultDescriptorSet sceneDescSet;
     DefaultDescriptorSet meshDescSet;
     Device * device;
-    uint32_t maxSwapchainImgCount = 2; // TODO get rid of this
     std::vector<Mesh> meshes = {};
     int meshCount = 500;
     Scene scene;
     Camera cam;
     SceneRenderSetup(){
     }
-    void init(Device* d){
+    void init(Device* d, uint32_t maxSwapchainImgCount){
         device = d;
         // compile and load shaders
         compileShader("shaders/shader.vert", "shaders/vert.spv");
@@ -101,7 +100,8 @@ class SceneRenderInstance {
         }
 
         // Creates the pipeline to render color + depth using shaders
-        pipeline.init((*device), imgDim.width, imgDim.height, {renderSetup->vertShader, renderSetup->fragShader}, renderSetup->sceneDescSet._descriptorSetLayout, renderSetup->meshDescSet._descriptorSetLayout, renderPass);
+        std::vector<Shader> x = {renderSetup->vertShader, renderSetup->fragShader};
+        pipeline.init((*device), imgDim.width, imgDim.height, x, renderSetup->sceneDescSet._descriptorSetLayout, renderSetup->meshDescSet._descriptorSetLayout, renderPass);
     
         this->createCommandBuffer();
     }

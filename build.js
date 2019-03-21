@@ -20,6 +20,7 @@ var buildConfig = {
     options: [
         // Enable exceptions:
         "/EHa",
+        "/W2",
         // Disable optimizations:
         "/Od"
     ],

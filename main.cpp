@@ -20,18 +20,10 @@
 #include "src/object3d/pointLight.hpp"
 #include "src/object3d/freeCameraInput.hpp"
 
-Renderer renderer;
-vk::SurfaceKHR surface;
-WindowManager wm;
 
-Swapchain swapchain;
 
-SceneRenderSetup sceneRenderSetup;
-SceneRenderInstance sceneRenderInstance;
 
-uint32_t maxSwapchainImgCount = 2;
-
-void createSwapchain(){
+void createSwapchain(WindowManager& wm, Renderer& renderer, Swapchain& swapchain, SceneRenderInstance& sceneRenderInstance, vk::SurfaceKHR& surface, uint32_t maxSwapchainImgCount, SceneRenderSetup& sceneRenderSetup){
   jlog("Creating swapchain");
   swapchain = Swapchain();
   
@@ -45,7 +37,7 @@ void createSwapchain(){
   sceneRenderSetup.cam.projectionHeight = swapchain._swapChainExtent.height;
 }
 
-void cleanup(){
+void cleanup(WindowManager& wm, Renderer& renderer, Swapchain& swapchain, SceneRenderInstance& sceneRenderInstance){
   // Cleanup start
   wm.waitForFrameBuffer();
   vkDeviceWaitIdle(renderer._device._device);
@@ -60,7 +52,19 @@ void cleanup(){
 
 int main() 
 {
+    uint32_t maxSwapchainImgCount = 2;
+    Renderer renderer;
+    vk::SurfaceKHR surface;
+    WindowManager wm;
+
+    Swapchain swapchain;
+    SceneRenderSetup sceneRenderSetup;
+
+    
+    SceneRenderInstance sceneRenderInstance;
+
     try{
+      jlog("A");
       // Create vulkan instance with extensions from display api's and with external memory for compositing
       std::vector<std::string> intanceExtensions = {
         VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME,
@@ -76,7 +80,7 @@ int main()
       surface = wm.createSurface(renderer._instance._instance);
       renderer.initDevice(surface);
 
-      sceneRenderSetup.init(&renderer._device);
+      sceneRenderSetup.init(&renderer._device, maxSwapchainImgCount);
 
       // Position camera start pose and handle camera movement
       FreeCameraInput cameraInput = FreeCameraInput(sceneRenderSetup.cam, wm);
@@ -86,7 +90,7 @@ int main()
       // Create syncing objects to avoid drawing too quickly
       renderer._device.createSyncObjects();
       
-      createSwapchain();
+      createSwapchain(wm, renderer, swapchain, sceneRenderInstance, surface, maxSwapchainImgCount, sceneRenderSetup);
       jlog("Bootup success");
 
       while(!wm.shouldClose()){
@@ -100,8 +104,8 @@ int main()
 
           }catch (const std::exception& e) {
             // TODO only do this on the proper exception
-            cleanup();
-            createSwapchain();
+            cleanup(wm, renderer, swapchain, sceneRenderInstance);
+            createSwapchain(wm, renderer, swapchain, sceneRenderInstance, surface, maxSwapchainImgCount, sceneRenderSetup);
           }
       }
     }catch (const char* e) {
