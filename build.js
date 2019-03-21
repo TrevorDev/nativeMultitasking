@@ -20,7 +20,8 @@ var buildConfig = {
     options: [
         // Enable exceptions:
         "/EHa",
-        "/W2",
+        // Wall check eg. unused variables etc.
+        //"/W4",
         // Disable optimizations:
         "/Od"
     ],

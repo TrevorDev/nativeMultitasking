@@ -94,10 +94,10 @@ class Mesh : public Node  {
     }
 
     void updateUniformBuffer(Device device, uint16_t imageIndex){
-         static auto startTime = std::chrono::high_resolution_clock::now();
+         //static auto startTime = std::chrono::high_resolution_clock::now();
 
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+        //auto currentTime = std::chrono::high_resolution_clock::now();
+        //float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
         UniformBufferObject ubo = {};
         this->computeWorldMatrix();

@@ -28,10 +28,10 @@ class Scene {
     }
 
     void updateUniformBuffer(Device device, uint16_t imageIndex, Camera& cam){
-        static auto startTime = std::chrono::high_resolution_clock::now();
+        // static auto startTime = std::chrono::high_resolution_clock::now();
 
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+        // auto currentTime = std::chrono::high_resolution_clock::now();
+        //float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
         SceneUniformBufferObject ubo = {};
         ubo.view = glm::make_mat4((float*)(cam._viewMatrix.m));  //glm::lookAt(glm::vec3(0.0f, 0.0, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));

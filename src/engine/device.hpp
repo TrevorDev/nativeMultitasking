@@ -4,7 +4,7 @@
 #include "vulkanInc.hpp"
 #include "../engine/glmInc.h"
 
-int MAX_FRAMES_IN_FLIGHT = 2;
+uint16_t MAX_FRAMES_IN_FLIGHT = 2;
 const int NUM_LIGHTS = 1;
 struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;

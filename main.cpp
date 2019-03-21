@@ -64,7 +64,6 @@ int main()
     SceneRenderInstance sceneRenderInstance;
 
     try{
-      jlog("A");
       // Create vulkan instance with extensions from display api's and with external memory for compositing
       std::vector<std::string> intanceExtensions = {
         VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME,

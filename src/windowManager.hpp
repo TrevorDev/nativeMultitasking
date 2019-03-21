@@ -3,7 +3,7 @@
 #include <vulkan/vulkan.hpp>
 #include <GLFW/glfw3.h>
 
-
+#define UNUSED(expr) do { (void)(expr); } while (0)
 
 struct WindowManagerFrameBufferSize {
 	uint32_t width;
@@ -21,6 +21,9 @@ public:
 	double lastCursorPosY = 0;
 
 	bool mouseDown = false;
+
+	int currentWidth = 0;
+	int currentHeight = 0;
 
 	WindowManager() {
 	}
@@ -40,6 +43,8 @@ public:
 
 		GLFWkeyfun keyCallback = [](GLFWwindow* w, int key, int scancode, int action, int mods)
 		{
+			UNUSED(scancode);
+			UNUSED(mods);
 			WindowManager* t = static_cast<WindowManager*>(glfwGetWindowUserPointer(w));
 			t->keys[key] = (action) ? true : false;
 		};
@@ -57,6 +62,7 @@ public:
 
 		GLFWmousebuttonfun cursorButtonCallback = [](GLFWwindow* w, int button, int action, int mods)
 		{
+			UNUSED(mods);
 			WindowManager* t = static_cast<WindowManager*>(glfwGetWindowUserPointer(w));
 			if (button == GLFW_MOUSE_BUTTON_LEFT) {
 				if(action == GLFW_PRESS){
@@ -110,18 +116,21 @@ public:
 private:
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
 		auto app = reinterpret_cast<WindowManager*>(glfwGetWindowUserPointer(window));
+		app->currentWidth = width;
+		app->currentHeight = height;
+		
 		app->framebufferResized = true;
 	}
 
-	static void character_callback(GLFWwindow* window, unsigned int codepoint)
-	{
-		//jlog(codepoint);
-	}
-	//typedef void (*GLFWkeyfun)(GLFWwindow *, int, int, int, int)
-	void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-	{
-		//keys[key] = action == GLFW_KEY_DOWN ? true : false;
-		//jlog(key);
-	}
+	// static void character_callback(GLFWwindow* window, unsigned int codepoint)
+	// {
+	// 	//jlog(codepoint);
+	// }
+	// //typedef void (*GLFWkeyfun)(GLFWwindow *, int, int, int, int)
+	// void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+	// {
+	// 	//keys[key] = action == GLFW_KEY_DOWN ? true : false;
+	// 	//jlog(key);
+	// }
 	GLFWwindow * window;
 };
