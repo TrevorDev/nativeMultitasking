@@ -33,7 +33,7 @@ Header only vulkan lib with the goal of one day support vr/ar multitasking clean
 
 ### Editor Setup:
  - VSCode https://code.visualstudio.com/
- - cscode-clangd https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.vscode-clangd
+ - vscode-clangd https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.vscode-clangd
  - To get includes for autocomplete run:
    - node build.js generateAutoCompleteFile
 

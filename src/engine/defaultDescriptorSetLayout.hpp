@@ -29,10 +29,18 @@ class DefaultDescriptorSet {
 
         _descriptorSetLayout = device._device.createDescriptorSetLayout(layoutInfo);
 
+        /*
+        https://www.reddit.com/r/vulkan/comments/8u9zqr/having_trouble_understanding_descriptor_pool/
+        So, for instance, if I need to draw 10 objects, each with its own descriptor set and draw call, and between those 10 objects I need 10 uniform buffers, and 20 samplers, then I would need:
+            maxSets = 10
+            one VkDescriptorPoolSize with type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER and descriptorCount = 10
+            one VkDescriptorPoolSize with type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER and descriptorCount = 20
+        */
+
         // Create descriptor set pool
         std::array<VkDescriptorPoolSize, 1> poolSizes = {};
         poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        poolSizes[0].descriptorCount = static_cast<uint32_t>(activeInstances); // Number of set active each frame (eg. swapchain size)
+        poolSizes[0].descriptorCount = static_cast<uint32_t>(activeInstances*maxSets); // Number of set active each frame (eg. swapchain size)
 
         VkDescriptorPoolCreateInfo poolInfo = {};
         poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
