@@ -97,9 +97,9 @@ int main()
             wm.update();
             cameraInput.update();
 
-            renderer.getNextImage(swapchain);
+            swapchain.getNextImage(renderer._device);
             sceneRenderInstance.render(swapchain._currentImageIndex, swapchain._currentFrame);
-            renderer.presentFrame(swapchain, sceneRenderInstance.signalSemaphores);
+            swapchain.presentFrame(renderer._device, sceneRenderInstance.signalSemaphores);
 
           }catch (const std::exception& e) {
             // TODO only do this on the proper exception

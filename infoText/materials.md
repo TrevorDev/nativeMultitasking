@@ -43,3 +43,6 @@ vkCmdBindDescriptorSets(cmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayo
 As some of the structures and function calls hinted at, it is actually possible to bind multiple descriptor sets simultaneously. You need to specify a descriptor layout for each descriptor set when creating the pipeline layout. Shaders can then reference specific descriptor sets like this:
 layout(set = 0, binding = 0) uniform UniformBufferObject { ... }
 You can use this feature to put descriptors that vary per-object and descriptors that are shared into separate descriptor sets. In that case you avoid rebinding most of the descriptors across draw calls which is potentially more efficient.
+
+// Per frame (MAX_FRAMES_IN_FLIGHT) vs per swapchain image
+Ideally everything should be per frame in flight but as commandbuffers are made with certain uniform buffers or other objects it is better to have them per swapchain image to avoid recreating the command buffer every frame

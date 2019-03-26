@@ -4,7 +4,6 @@
 #include "vulkanInc.hpp"
 #include "../engine/glmInc.h"
 
-uint16_t MAX_FRAMES_IN_FLIGHT = 2;
 const int NUM_LIGHTS = 1;
 struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
@@ -301,6 +300,7 @@ class Device {
     std::vector<vk::Semaphore> _renderFinishedSemaphores;
     std::vector<vk::Fence> _inFlightFences;
 
+    uint16_t MAX_FRAMES_IN_FLIGHT = 2;
     void createSyncObjects() {
         _imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
         _renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
