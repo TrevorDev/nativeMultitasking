@@ -46,3 +46,11 @@ You can use this feature to put descriptors that vary per-object and descriptors
 
 // Per frame (MAX_FRAMES_IN_FLIGHT) vs per swapchain image
 Ideally everything should be per frame in flight but as commandbuffers are made with certain uniform buffers or other objects it is better to have them per swapchain image to avoid recreating the command buffer every frame
+
+
+// Fence vs semaphore
+semaphore is gpu - gpu
+    vkAcquireNextImageKHR - gets ref to image that is not yet availible and give a semaphore (_imageAvailableSemaphores) for when its ready
+    render (_graphicsQueue.submit) will wait for semaphore (_imageAvailableSemaphores) before it starts drawing, _renderFinishedSemaphores will be marked when its done
+Fences are cpu - gpu
+    When rendering _inFlightFences is used to avoid submitting too many commands to the gpu, before rendering the a fence is created and submitted with the render request, before rendering again the cpu waits on the fence to complete, multiple fences can be used to render multiple frames while others are in progress
