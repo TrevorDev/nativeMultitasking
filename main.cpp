@@ -25,8 +25,10 @@
 
 void createSwapchain(WindowManager& wm, Renderer& renderer, Swapchain& swapchain, SceneRenderInstance& sceneRenderInstance, vk::SurfaceKHR& surface, uint32_t maxSwapchainImgCount, SceneRenderSetup& sceneRenderSetup){
   jlog("Creating swapchain");
+  // Recreate objects to ensure internals get reset eg. vectors
+  // Todo call cleanup functions on these
   swapchain = Swapchain();
-  
+  sceneRenderInstance = SceneRenderInstance();
 
   // create swapchain and renderpass with color + depth
   swapchain.init(surface, wm.getFramebufferSize().width, wm.getFramebufferSize().height, renderer._device, maxSwapchainImgCount);

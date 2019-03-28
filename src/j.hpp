@@ -33,7 +33,14 @@ void jlog(const char* obj) {
 int _jnum = 0;
 
 void jcount(){
+	if(_jnum == 0){
+		jlog("JCOUNT START -------");
+	}
 	jlog(_jnum++);
+}
+
+void jcountReset(){
+	_jnum = 0;
 }
 
 void jwaitForEnter(){

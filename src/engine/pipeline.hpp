@@ -59,7 +59,6 @@ class Pipeline {
         
     }
     void init(Device& device, uint32_t viewportWidth, uint32_t viewportHeight, std::vector<Shader>& inputShaderStages, vk::DescriptorSetLayout sceneDescriptorSetLayout, vk::DescriptorSetLayout descriptorSetLayout, RenderPass renderPass){
-        jcount();
         // Convert shaders to config object
         VkPipelineShaderStageCreateInfo* shaderStages = new VkPipelineShaderStageCreateInfo[inputShaderStages.size()];
         auto i = 0;
@@ -77,7 +76,7 @@ class Pipeline {
         vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
         vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
         vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
-    jcount();
+    
         // Input is a triangle list
         VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
         inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -98,7 +97,7 @@ class Pipeline {
         VkRect2D scissor = {};
         scissor.offset = {0, 0};
         scissor.extent = viewPortExtent;
-jcount();
+
         // Viewport state
         VkPipelineViewportStateCreateInfo viewportState = {};
         viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -123,7 +122,7 @@ jcount();
         multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
         multisampling.sampleShadingEnable = VK_FALSE;
         multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-jcount();
+
         // Use depth/stencil buffer
         VkPipelineDepthStencilStateCreateInfo depthStencil = {};
         depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
@@ -147,7 +146,7 @@ jcount();
         colorBlending.blendConstants[1] = 0.0f;
         colorBlending.blendConstants[2] = 0.0f;
         colorBlending.blendConstants[3] = 0.0f;
-jcount();
+
         // Set the descriptorSetLayout on the pipeline
         vk::DescriptorSetLayout setLayouts[2];
         setLayouts[0] = descriptorSetLayout;
@@ -175,7 +174,7 @@ jcount();
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
         vk::PipelineCache x=vk::PipelineCache();
         _graphicsPipeline = device._device.createGraphicsPipeline(x, pipelineInfo, nullptr);
-jcount();
+
         // Clear shaders after they've been loaded
         // TODO should this be done here or in the actual shader?
         for(auto& stage : inputShaderStages){
@@ -188,7 +187,7 @@ jcount();
             
             jlog("destroy done");
         }
-        jcount();
+        
         // delete shaderStages;
         jlog("Pipeline created");
     }

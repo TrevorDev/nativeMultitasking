@@ -29,11 +29,6 @@ class SceneRenderSetup {
     }
     void init(Device* d, uint32_t maxSwapchainImgCount){
         device = d;
-        // compile and load shaders
-        compileShader("shaders/shader.vert", "shaders/vert.spv");
-        compileShader("shaders/shader.frag", "shaders/frag.spv");
-        vertShader.init(*this->device, "shaders/vert.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT);
-        fragShader.init(*this->device, "shaders/frag.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT);
 
         // Create main descriptor set pools
         sceneDescSet.init(*this->device, maxSwapchainImgCount, 1);
@@ -87,6 +82,7 @@ class SceneRenderInstance {
         this->dimensions = imgDim;
         this->device = device;
         this->setup = renderSetup;
+       // this->images = {};
         for(auto& im : images){
             auto a = &im;
             this->images.push_back(a);
@@ -99,15 +95,25 @@ class SceneRenderInstance {
             im.createFrameBuffer(depthImage, renderPass, imgDim.width, imgDim.height);
         }
 
+        // compile and load shaders
+        // TODO should recompile shaders be in SceneRenderSetup.init to avoid compiling every time?
+        compileShader("shaders/shader.vert", "shaders/vert.spv");
+        compileShader("shaders/shader.frag", "shaders/frag.spv");
+        renderSetup->vertShader.init(*this->device, "shaders/vert.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT);
+        renderSetup->fragShader.init(*this->device, "shaders/frag.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT);
+
         // Creates the pipeline to render color + depth using shaders
         std::vector<Shader> x = {renderSetup->vertShader, renderSetup->fragShader};
+         jlog("init pipe");
         pipeline.init((*device), imgDim.width, imgDim.height, x, renderSetup->sceneDescSet._descriptorSetLayout, renderSetup->meshDescSet._descriptorSetLayout, renderPass);
-    
+        jlog("create cmd");
         this->createCommandBuffer();
+         jlog("cmd created");
     }
     void createCommandBuffer(){
         _commandBuffers.resize(images.size());
 
+    
         VkCommandBufferAllocateInfo allocInfo = {};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.commandPool = device->_commandPool;
@@ -115,7 +121,7 @@ class SceneRenderInstance {
         allocInfo.commandBufferCount = (uint32_t) _commandBuffers.size();
 
         _commandBuffers = device->_device.allocateCommandBuffers(allocInfo);
-
+    
         for (size_t i = 0; i < _commandBuffers.size(); i++) {
             VkCommandBufferBeginInfo beginInfo = {};
             beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -124,7 +130,7 @@ class SceneRenderInstance {
             if (vkBeginCommandBuffer(_commandBuffers[i], &beginInfo) != VK_SUCCESS) {
                 throw std::runtime_error("failed to begin recording command buffer!");
             }
-    
+
             VkRenderPassBeginInfo renderPassInfo = {};
             renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
             renderPassInfo.renderPass = renderPass._renderPass;
@@ -138,18 +144,16 @@ class SceneRenderInstance {
 
             renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
             renderPassInfo.pClearValues = clearValues.data();
-
             vkCmdBeginRenderPass(_commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-                vkCmdBindPipeline(_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline._graphicsPipeline);
-                _commandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics,pipeline._pipelineLayout,0, this->setup->scene._descriptorSets[i], {0});
-                for (auto &mesh : this->setup->meshes){
-                    mesh.draw(_commandBuffers[i], pipeline._pipelineLayout, i);
-                }
+            vkCmdBindPipeline(_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline._graphicsPipeline);
+        
+            _commandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics,pipeline._pipelineLayout,0, this->setup->scene._descriptorSets[i], {0});
+        
+            for (auto &mesh : this->setup->meshes){
+                mesh.draw(_commandBuffers[i], pipeline._pipelineLayout, i);
+            }
                 
-
             vkCmdEndRenderPass(_commandBuffers[i]);
-
             if (vkEndCommandBuffer(_commandBuffers[i]) != VK_SUCCESS) {
                 throw std::runtime_error("failed to record command buffer!");
             }
