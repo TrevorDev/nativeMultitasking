@@ -109,6 +109,7 @@ int main()
             createSwapchain(wm, renderer, swapchain, sceneRenderInstance, surface, maxSwapchainImgCount, sceneRenderSetup);
           }
       }
+      wm.dispose();
     }catch (const char* e) {
       jlog("Native code threw an exception:");
       std::cerr << e << std::endl;
@@ -125,6 +126,7 @@ int main()
       jlog("Unknown native exception occured");
       throw;
     }
+    jlog("Closing");
     
     return 0;
 }

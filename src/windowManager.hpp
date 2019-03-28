@@ -27,6 +27,10 @@ public:
 
 	WindowManager() {
 	}
+	void dispose(){
+		glfwDestroyWindow(this->window);
+		glfwTerminate();
+	}
 	void init(uint32_t width, uint32_t height){
 		glfwInit();
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);

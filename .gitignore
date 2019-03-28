@@ -4,3 +4,5 @@ compile_flags.txt
 node_modules/
 *.spv
 .vs
+*.ilk
+*.pdb

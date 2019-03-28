@@ -23,7 +23,15 @@ var buildConfig = {
         // Wall check eg. unused variables etc.
         //"/W4",
         // Disable optimizations:
-        "/Od"
+        "/Od",
+        
+        // Dr memory debug recomended options https://drmemory.org/docs/page_running.html
+        // "/Zi",
+        // "/MT",
+        // "/EHsc",
+        // "/Oy-",
+        // "/Ob0"
+        //
     ],
     stdVersion: "c++17"
 }
