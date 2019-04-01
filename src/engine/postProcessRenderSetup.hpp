@@ -13,48 +13,95 @@
 
 
 
-class SceneRenderSetup {
+class PostProcessRenderSetup {
     public:
     Shader vertShader;
     Shader fragShader;
-
-    DefaultDescriptorSet sceneDescSet;
-    DefaultDescriptorSet meshDescSet;
+    DefaultDescriptorSet postProcessDescSet;
     Device * device;
-    std::vector<Mesh> meshes = {};
-    int meshCount = 500;
-    Scene scene;
-    Camera cam;
-    SceneRenderSetup(){
+
+    PostProcessRenderSetup(){
     }
     void init(Device* d, uint32_t maxSwapchainImgCount){
         device = d;
 
         // Create main descriptor set pools
-        sceneDescSet.init(*this->device, maxSwapchainImgCount, 1);
-        meshDescSet.init(*this->device, maxSwapchainImgCount, meshCount);
+        postProcessDescSet.init(*this->device, maxSwapchainImgCount, 1);
 
-        // Create scene buffers and pool
-        scene.createUniformBuffer(*this->device, maxSwapchainImgCount);
-        scene.createDescriptorSet(*this->device, sceneDescSet._descriptorPool,  sceneDescSet._descriptorSetLayout, maxSwapchainImgCount);
-
-        // Create descriptor set per mesh
-        jlog("creating meshes");
-        meshes.resize(meshCount);
-        for(auto &m : meshes){
-            m.init(*this->device);
-            m.createUniformBuffer(*this->device, maxSwapchainImgCount);
-            m.createDescriptorSet(*this->device, meshDescSet._descriptorPool,  meshDescSet._descriptorSetLayout, maxSwapchainImgCount);
-        }
-        int pos = 0;
-        for(auto &mesh : meshes){
-            mesh.position.x = pos;
-            mesh.position.y = pos/100.0;
-            mesh.position.z = -pos;
-            pos+=1;
-        }
-        jlog("creating meshes done");
+        this->createUniformBuffer(*d, maxSwapchainImgCount);
+        this->createDescriptorSet(*d, postProcessDescSet._descriptorPool, postProcessDescSet._descriptorSetLayout, maxSwapchainImgCount);
     }
+
+    std::vector<vk::Buffer> _uniformBuffers;
+    std::vector<vk::DeviceMemory> _uniformBuffersMemory;
+    std::vector<vk::DescriptorSet> _descriptorSets;
+
+    void createUniformBuffer(Device device, uint16_t swapChainImageCount){
+        VkDeviceSize bufferSize = sizeof(SceneUniformBufferObject);
+
+        _uniformBuffers.resize(swapChainImageCount);
+        _uniformBuffersMemory.resize(swapChainImageCount);
+
+        for (size_t i = 0; i < swapChainImageCount; i++) {
+            device.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, _uniformBuffers[i], _uniformBuffersMemory[i]);
+        }
+    }
+
+    // void updateUniformBuffer(Device device, uint16_t imageIndex, Camera& cam){
+    //     // static auto startTime = std::chrono::high_resolution_clock::now();
+
+    //     // auto currentTime = std::chrono::high_resolution_clock::now();
+    //     //float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+    //     SceneUniformBufferObject ubo = {};
+    //     ubo.view = glm::make_mat4((float*)(cam._viewMatrix.m));  //glm::lookAt(glm::vec3(0.0f, 0.0, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    //     ubo.proj = glm::perspective(cam.projectionAngleRad, cam.projectionWidth / (float) cam.projectionHeight, cam.nearClip, cam.farClip);
+    //     ubo.proj[1][1] *= -1;
+    //     ubo.cameraPos = glm::vec3(cam.position.x,cam.position.y,cam.position.z);
+
+    //     void* data;
+    //     vkMapMemory(device._device, _uniformBuffersMemory[imageIndex], 0, sizeof(ubo), 0, &data);
+    //         memcpy(data, &ubo, sizeof(ubo));
+    //     vkUnmapMemory(device._device, _uniformBuffersMemory[imageIndex]);
+    // }
+
+    void createDescriptorSet(Device device, vk::DescriptorPool pool, vk::DescriptorSetLayout layout, uint16_t swapChainImageCount){
+        std::vector<VkDescriptorSetLayout> layouts(swapChainImageCount, layout);
+        VkDescriptorSetAllocateInfo allocInfo = {};
+        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        allocInfo.descriptorPool = pool;
+        allocInfo.descriptorSetCount = static_cast<uint32_t>(swapChainImageCount);
+        allocInfo.pSetLayouts = layouts.data();
+
+        _descriptorSets.resize(swapChainImageCount);
+        _descriptorSets = device._device.allocateDescriptorSets(allocInfo);
+
+        for (size_t i = 0; i < swapChainImageCount; i++) {
+            VkDescriptorBufferInfo bufferInfo = {};
+            bufferInfo.buffer = _uniformBuffers[i];
+            bufferInfo.offset = 0;
+            bufferInfo.range = sizeof(SceneUniformBufferObject);
+
+            std::array<VkWriteDescriptorSet, 1> descriptorWrites = {};
+
+            descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[0].dstSet = _descriptorSets[i];
+            descriptorWrites[0].dstBinding = 0;
+            descriptorWrites[0].dstArrayElement = 0;
+            descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptorWrites[0].descriptorCount = 1;
+            descriptorWrites[0].pBufferInfo = &bufferInfo;
+
+            vkUpdateDescriptorSets(device._device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+        }
+    }
+
+
+
+
+
+
+
     void createCommandBuffers(){
         
     }
@@ -67,18 +114,18 @@ class SceneRenderSetup {
     
 };
 
-class SceneRenderInstance {
+class PostProcessRenderInstance {
     public:
     RenderPass renderPass;
     Pipeline pipeline;
-    SceneRenderSetup* setup;
+    PostProcessRenderSetup* setup;
     std::vector<Image*> images;
     std::vector<vk::CommandBuffer> _commandBuffers = {};
     Device* device;
     vk::Extent2D dimensions;
-    SceneRenderInstance(){
+    PostProcessRenderInstance(){
     }
-    void init(Device * device, SceneRenderSetup* renderSetup, std::vector<Image>& images, VkFormat imageFormat, Image& depthImage, vk::Extent2D imgDim){
+    void init(Device * device, PostProcessRenderSetup* renderSetup, std::vector<Image>& images, VkFormat imageFormat, Image& depthImage, vk::Extent2D imgDim){
         this->dimensions = imgDim;
         this->device = device;
         this->setup = renderSetup;
@@ -96,16 +143,16 @@ class SceneRenderInstance {
         }
 
         // compile and load shaders
-        // TODO should recompile shaders be in SceneRenderSetup.init to avoid compiling every time?
-        compileShader("shaders/shader.vert", "shaders/vert.spv");
-        compileShader("shaders/shader.frag", "shaders/frag.spv");
-        renderSetup->vertShader.init(*this->device, "shaders/vert.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT);
-        renderSetup->fragShader.init(*this->device, "shaders/frag.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT);
+        // TODO should recompile shaders be in PostProcessRenderSetup.init to avoid compiling every time?
+        compileShader("shaders/ppShader.vert", "shaders/ppvert.spv");
+        compileShader("shaders/ppShader.frag", "shaders/ppfrag.spv");
+        renderSetup->vertShader.init(*this->device, "shaders/ppvert.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT);
+        renderSetup->fragShader.init(*this->device, "shaders/ppfrag.spv", VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT);
 
         // Creates the pipeline to render color + depth using shaders
-        std::vector<Shader> shaders = {renderSetup->vertShader, renderSetup->fragShader};
-        jlog("init pipe");
-        pipeline.init((*device), imgDim.width, imgDim.height, shaders, {&renderSetup->sceneDescSet._descriptorSetLayout, &renderSetup->meshDescSet._descriptorSetLayout}, renderPass);
+        std::vector<Shader> x = {renderSetup->vertShader, renderSetup->fragShader};
+         jlog("init pipe");
+        pipeline.init((*device), imgDim.width, imgDim.height, x, {&renderSetup->postProcessDescSet._descriptorSetLayout}, renderPass);
         jlog("create cmd");
         this->createCommandBuffer();
          jlog("cmd created");
@@ -147,11 +194,9 @@ class SceneRenderInstance {
             vkCmdBeginRenderPass(_commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
             vkCmdBindPipeline(_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline._graphicsPipeline);
         
-            _commandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics,pipeline._pipelineLayout,0, this->setup->scene._descriptorSets[i], {0});
+            _commandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics,pipeline._pipelineLayout,0, this->setup->_descriptorSets[i], {0});
         
-            for (auto &mesh : this->setup->meshes){
-                mesh.draw(_commandBuffers[i], pipeline._pipelineLayout, i);
-            }
+            vkCmdDraw(_commandBuffers[i], 3, 1, 0, 0);
                 
             vkCmdEndRenderPass(_commandBuffers[i]);
             if (vkEndCommandBuffer(_commandBuffers[i]) != VK_SUCCESS) {
@@ -163,10 +208,10 @@ class SceneRenderInstance {
     vk::Semaphore signalSemaphores[1];
     // TODO what is swapchain currentFrame vs swapchain currentImageIndex??
     void render(uint16_t currentImageIndex, uint16_t currentFrame){
-        for(auto &m : this->setup->meshes){
-            m.updateUniformBuffer((*this->device), currentImageIndex);
-        }
-        this->setup->scene.updateUniformBuffer((*this->device), currentImageIndex, this->setup->cam);
+        // for(auto &m : this->setup->meshes){
+        //     m.updateUniformBuffer((*this->device), currentImageIndex);
+        // }
+        // this->setup->scene.updateUniformBuffer((*this->device), currentImageIndex, this->setup->cam);
         
         //updateUniformBuffer(currentImageIndex, swapchain, otherMesh, cam, otherMesh._materialRef->_uniformBuffersMemory, otherMesh._materialRef->_pointLightsUniformBuffersMemory);
 

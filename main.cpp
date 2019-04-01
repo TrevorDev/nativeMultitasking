@@ -13,6 +13,7 @@
 #include "src/engine/shaderCompile.hpp"
 
 #include "src/engine/sceneRenderSetup.hpp"
+#include "src/engine/postProcessRenderSetup.hpp"
 #include "src/engine/image.hpp"
 #include "src/object3d/mesh.hpp"
 #include "src/object3d/scene.hpp"
@@ -23,7 +24,7 @@
 
 
 
-void createSwapchain(WindowManager& wm, Renderer& renderer, Swapchain& swapchain, SceneRenderInstance& sceneRenderInstance, vk::SurfaceKHR& surface, uint32_t maxSwapchainImgCount, SceneRenderSetup& sceneRenderSetup){
+void createSwapchain(WindowManager& wm, Renderer& renderer, Swapchain& swapchain, SceneRenderInstance& sceneRenderInstance, vk::SurfaceKHR& surface, uint32_t maxSwapchainImgCount, SceneRenderSetup& sceneRenderSetup, PostProcessRenderInstance& postProcessRenderInstance, PostProcessRenderSetup& postProcessRenderSetup){
   jlog("Creating swapchain");
   // Recreate objects to ensure internals get reset eg. vectors
   // Todo call cleanup functions on these
@@ -32,11 +33,14 @@ void createSwapchain(WindowManager& wm, Renderer& renderer, Swapchain& swapchain
 
   // create swapchain and renderpass with color + depth
   swapchain.init(surface, wm.getFramebufferSize().width, wm.getFramebufferSize().height, renderer._device, maxSwapchainImgCount);
-  sceneRenderInstance.init(&renderer._device, &sceneRenderSetup, swapchain._swapChainImages, swapchain._swapChainImageFormat, swapchain._depthImage, swapchain._swapChainExtent);
+  //sceneRenderInstance.init(&renderer._device, &sceneRenderSetup, swapchain._swapChainImages, swapchain._swapChainImageFormat, swapchain._depthImage, swapchain._swapChainExtent);
   
   // set camera projection to match output
   sceneRenderSetup.cam.projectionWidth = swapchain._swapChainExtent.width;
   sceneRenderSetup.cam.projectionHeight = swapchain._swapChainExtent.height;
+
+  postProcessRenderInstance = PostProcessRenderInstance();
+  postProcessRenderInstance.init(&renderer._device, &postProcessRenderSetup, swapchain._swapChainImages, swapchain._swapChainImageFormat, swapchain._depthImage, swapchain._swapChainExtent);
 }
 
 void cleanup(WindowManager& wm, Renderer& renderer, Swapchain& swapchain, SceneRenderInstance& sceneRenderInstance){
@@ -60,10 +64,12 @@ int main()
     WindowManager wm;
 
     Swapchain swapchain;
-    SceneRenderSetup sceneRenderSetup;
 
-    
+    SceneRenderSetup sceneRenderSetup;
     SceneRenderInstance sceneRenderInstance;
+    
+    PostProcessRenderSetup postProcessRenderSetup;
+    PostProcessRenderInstance postProcessRenderInstance;
 
     try{
       // Create vulkan instance with extensions from display api's and with external memory for compositing
@@ -82,6 +88,7 @@ int main()
       renderer.initDevice(surface);
 
       sceneRenderSetup.init(&renderer._device, maxSwapchainImgCount);
+      postProcessRenderSetup.init(&renderer._device, maxSwapchainImgCount);
 
       // Position camera start pose and handle camera movement
       FreeCameraInput cameraInput = FreeCameraInput(sceneRenderSetup.cam, wm);
@@ -91,7 +98,7 @@ int main()
       // Create syncing objects to avoid drawing too quickly
       renderer._device.createSyncObjects();
       
-      createSwapchain(wm, renderer, swapchain, sceneRenderInstance, surface, maxSwapchainImgCount, sceneRenderSetup);
+      createSwapchain(wm, renderer, swapchain, sceneRenderInstance, surface, maxSwapchainImgCount, sceneRenderSetup, postProcessRenderInstance, postProcessRenderSetup);
       jlog("Bootup success");
 
       while(!wm.shouldClose()){
@@ -100,13 +107,13 @@ int main()
             cameraInput.update();
 
             swapchain.getNextImage(renderer._device);
-            sceneRenderInstance.render(swapchain._currentImageIndex, swapchain._currentFrame);
-            swapchain.presentFrame(renderer._device, sceneRenderInstance.signalSemaphores);
+            postProcessRenderInstance.render(swapchain._currentImageIndex, swapchain._currentFrame);
+            swapchain.presentFrame(renderer._device, postProcessRenderInstance.signalSemaphores);
 
           }catch (const std::exception& e) {
             // TODO only do this on the proper exception
             cleanup(wm, renderer, swapchain, sceneRenderInstance);
-            createSwapchain(wm, renderer, swapchain, sceneRenderInstance, surface, maxSwapchainImgCount, sceneRenderSetup);
+            createSwapchain(wm, renderer, swapchain, sceneRenderInstance, surface, maxSwapchainImgCount, sceneRenderSetup, postProcessRenderInstance, postProcessRenderSetup);
           }
       }
       wm.dispose();

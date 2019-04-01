@@ -58,7 +58,7 @@ class Pipeline {
     Pipeline(){
         
     }
-    void init(Device& device, uint32_t viewportWidth, uint32_t viewportHeight, std::vector<Shader>& inputShaderStages, vk::DescriptorSetLayout sceneDescriptorSetLayout, vk::DescriptorSetLayout descriptorSetLayout, RenderPass renderPass){
+    void init(Device& device, uint32_t viewportWidth, uint32_t viewportHeight, std::vector<Shader>& inputShaderStages, std::vector<vk::DescriptorSetLayout*> descriptorSetLayouts, RenderPass renderPass){
         // Convert shaders to config object
         VkPipelineShaderStageCreateInfo* shaderStages = new VkPipelineShaderStageCreateInfo[inputShaderStages.size()];
         auto i = 0;
@@ -66,16 +66,15 @@ class Pipeline {
             shaderStages[i] = stage._shaderStageInfo;
             i++;
         }
-
         // Setup vertex shader input
-        VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
+        VkPipelineVertexInputStateCreateInfo vertexInputInfo;
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         auto bindingDescription = Vertex::getBindingDescription();
         auto attributeDescriptions = Vertex::getAttributeDescriptions();
-        vertexInputInfo.vertexBindingDescriptionCount = 1;
-        vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-        vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
-        vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+        vertexInputInfo.vertexBindingDescriptionCount = 0;
+        vertexInputInfo.vertexAttributeDescriptionCount = 0; //static_cast<uint32_t>(attributeDescriptions.size());
+        vertexInputInfo.pVertexBindingDescriptions = nullptr;
+        vertexInputInfo.pVertexAttributeDescriptions = nullptr;
     
         // Input is a triangle list
         VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
@@ -113,7 +112,7 @@ class Pipeline {
         rasterizer.rasterizerDiscardEnable = VK_FALSE;
         rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
         rasterizer.lineWidth = 1.0f;
-        rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+        rasterizer.cullMode = VK_CULL_MODE_FRONT_BIT;
         rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
         rasterizer.depthBiasEnable = VK_FALSE;
 
@@ -148,11 +147,12 @@ class Pipeline {
         colorBlending.blendConstants[3] = 0.0f;
 
         // Set the descriptorSetLayout on the pipeline
-        vk::DescriptorSetLayout setLayouts[2];
-        setLayouts[0] = descriptorSetLayout;
-        setLayouts[1] = sceneDescriptorSetLayout;
+        vk::DescriptorSetLayout setLayouts[descriptorSetLayouts.size()];
+        for(uint16_t i = 0;i<descriptorSetLayouts.size();i++){
+            setLayouts[i] = *descriptorSetLayouts[i];
+        }
         vk::PipelineLayoutCreateInfo pipelineLayoutInfo = {};
-        pipelineLayoutInfo.setLayoutCount = 2;
+        pipelineLayoutInfo.setLayoutCount = descriptorSetLayouts.size();
         pipelineLayoutInfo.pSetLayouts = setLayouts;
         _pipelineLayout = device._device.createPipelineLayout(pipelineLayoutInfo);
 
