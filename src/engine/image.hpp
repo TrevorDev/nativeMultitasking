@@ -4,6 +4,10 @@
 #include "vulkanInc.hpp"
 #include "device.hpp"
 #include "renderPass.hpp"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "../../../external/stb/stb_image.h"
+
 class Image {
     public:
     vk::Image _image;
@@ -30,7 +34,7 @@ class Image {
         _imageView = _device._device.createImageView(viewInfo);
     }
 
-    void createFrameBuffer(Image depthImage, RenderPass _renderPass, uint32_t width, uint32_t height){
+    void createFrameBuffer(Image& depthImage, RenderPass& _renderPass, uint32_t width, uint32_t height){
         std::array<VkImageView, 2> attachments = {
             _imageView,
             depthImage._imageView
@@ -138,6 +142,67 @@ class Image {
         //std::cout << fd << std::endl;
         
         return fd;
+    }
+
+    HANDLE loadImageFromFile(Device* d) {
+        int texWidth, texHeight, texChannels;
+        stbi_uc* pixels = stbi_load("textures/texture.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+        VkDeviceSize imageSize = texWidth * texHeight * 4;
+
+        if (!pixels) {
+            throw std::runtime_error("failed to load texture image!");
+        }
+
+        vk::Buffer stagingBuffer;
+        vk::DeviceMemory stagingBufferMemory;
+        d->createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+        void* data;
+        vkMapMemory(d->_device, stagingBufferMemory, 0, imageSize, 0, &data);
+            memcpy(data, pixels, static_cast<size_t>(imageSize));
+        vkUnmapMemory(d->_device, stagingBufferMemory);
+
+        stbi_image_free(pixels);
+
+//uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties
+        HANDLE fd = createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
+         VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+        // Comment this out to allow client to fill this
+        jlog("filled");
+        transitionImageLayout(VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+            copyBufferToImage(d, stagingBuffer, this->_image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+        transitionImageLayout(VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+        
+        vkDestroyBuffer(d->_device, stagingBuffer, nullptr);
+        vkFreeMemory(d->_device, stagingBufferMemory, nullptr);
+
+        this->createImageView(VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT);
+        return fd;
+    }
+
+    void copyBufferToImage(Device* d, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
+        VkCommandBuffer commandBuffer = d->beginSingleTimeCommands();
+
+        VkBufferImageCopy region = {};
+        region.bufferOffset = 0;
+        region.bufferRowLength = 0;
+        region.bufferImageHeight = 0;
+        region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        region.imageSubresource.mipLevel = 0;
+        region.imageSubresource.baseArrayLayer = 0;
+        region.imageSubresource.layerCount = 1;
+        region.imageOffset = {0, 0, 0};
+        region.imageExtent = {
+            width,
+            height,
+            1
+        };
+
+        vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+        d->endSingleTimeCommands(commandBuffer);
     }
 
     bool hasStencilComponent(VkFormat format) {

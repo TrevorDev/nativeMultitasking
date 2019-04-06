@@ -26,11 +26,11 @@ var buildConfig = {
         "/Od",
         
         // Dr memory debug recomended options https://drmemory.org/docs/page_running.html
-        // "/Zi",
-        // "/MT",
-        // "/EHsc",
-        // "/Oy-",
-        // "/Ob0"
+        "/Zi",
+        "/MT",
+        "/EHsc",
+        "/Oy-",
+        "/Ob0"
         //
     ],
     stdVersion: "c++17"

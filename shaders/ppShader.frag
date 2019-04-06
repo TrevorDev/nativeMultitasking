@@ -24,6 +24,6 @@ void main()
 	// 	color += texture(samplerColor, UV * scale + ubo.radialOrigin);
 	// }
  
-	outFragColor = vec4(0.0, 1.0, 0.0, 1.0);
+	outFragColor = vec4(0.0, 139.0/255.0, 139.0/255.0, 1.0);
     //(color / samples) * ubo.radialBlurStrength;
 }

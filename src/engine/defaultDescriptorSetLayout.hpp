@@ -11,7 +11,7 @@ class DefaultDescriptorSet {
     }
     vk::DescriptorPool _descriptorPool;
     vk::DescriptorSetLayout _descriptorSetLayout;
-    void init(Device& device, uint16_t activeInstances, uint16_t maxSets){
+    void init(Device& device, uint16_t activeInstances, uint16_t maxSets, uint16_t samplerCount = 0){
         // See https://vulkan-tutorial.com/Uniform_buffers/Descriptor_pool_and_sets for more details
         // Create layout for single uniform buffer
         VkDescriptorSetLayoutBinding uboLayoutBinding = {};
@@ -21,10 +21,22 @@ class DefaultDescriptorSet {
         uboLayoutBinding.pImmutableSamplers = nullptr;
         uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-        std::array<VkDescriptorSetLayoutBinding, 1> bindings = {uboLayoutBinding};
+        VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
+        samplerLayoutBinding.binding = 1;
+        samplerLayoutBinding.descriptorCount = 1;
+        samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        samplerLayoutBinding.pImmutableSamplers = nullptr;
+        samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        uint16_t bindingCount = 1;
+        if(samplerCount > 0){
+            bindingCount = 2;
+        }
+
+        std::array<VkDescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding, samplerLayoutBinding};
         VkDescriptorSetLayoutCreateInfo layoutInfo = {};
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+        layoutInfo.bindingCount = static_cast<uint32_t>(bindingCount);
         layoutInfo.pBindings = bindings.data();
 
         _descriptorSetLayout = device._device.createDescriptorSetLayout(layoutInfo);
@@ -38,13 +50,15 @@ class DefaultDescriptorSet {
         */
 
         // Create descriptor set pool
-        std::array<VkDescriptorPoolSize, 1> poolSizes = {};
+        std::array<VkDescriptorPoolSize, 2> poolSizes = {};
         poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         poolSizes[0].descriptorCount = static_cast<uint32_t>(activeInstances*maxSets); // Number of set active each frame (eg. swapchain size)
+        poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        poolSizes[1].descriptorCount = static_cast<uint32_t>(activeInstances*maxSets);
 
         VkDescriptorPoolCreateInfo poolInfo = {};
         poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+        poolInfo.poolSizeCount = static_cast<uint32_t>(bindingCount);
         poolInfo.pPoolSizes = poolSizes.data();
         poolInfo.maxSets = static_cast<uint32_t>(activeInstances*maxSets); // Max amount that can be allocated (eg. 100 meshes * 2 frames)
 

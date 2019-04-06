@@ -11,7 +11,8 @@
 #include "image.hpp"
 
 
-
+Image loadedImg;
+VkSampler textureSampler;
 
 class PostProcessRenderSetup {
     public:
@@ -24,11 +25,12 @@ class PostProcessRenderSetup {
     }
     void init(Device* d, uint32_t maxSwapchainImgCount){
         device = d;
-
+        jlog("create pp render setup");
         // Create main descriptor set pools
-        postProcessDescSet.init(*this->device, maxSwapchainImgCount, 1);
-
+        postProcessDescSet.init(*this->device, maxSwapchainImgCount, 1, 2);
+        jlog("create uniform");
         this->createUniformBuffer(*d, maxSwapchainImgCount);
+        jlog("create ds");
         this->createDescriptorSet(*d, postProcessDescSet._descriptorPool, postProcessDescSet._descriptorSetLayout, maxSwapchainImgCount);
     }
 
@@ -77,12 +79,18 @@ class PostProcessRenderSetup {
         _descriptorSets = device._device.allocateDescriptorSets(allocInfo);
 
         for (size_t i = 0; i < swapChainImageCount; i++) {
+            jlog("A");
+            VkDescriptorImageInfo imageInfo = {};
+            imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imageInfo.imageView = loadedImg._imageView;
+            imageInfo.sampler = textureSampler;
+
             VkDescriptorBufferInfo bufferInfo = {};
             bufferInfo.buffer = _uniformBuffers[i];
             bufferInfo.offset = 0;
             bufferInfo.range = sizeof(SceneUniformBufferObject);
 
-            std::array<VkWriteDescriptorSet, 1> descriptorWrites = {};
+            std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
 
             descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             descriptorWrites[0].dstSet = _descriptorSets[i];
@@ -92,7 +100,16 @@ class PostProcessRenderSetup {
             descriptorWrites[0].descriptorCount = 1;
             descriptorWrites[0].pBufferInfo = &bufferInfo;
 
+            descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[1].dstSet = _descriptorSets[i];
+            descriptorWrites[1].dstBinding = 1;
+            descriptorWrites[1].dstArrayElement = 0;
+            descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            descriptorWrites[1].descriptorCount = 1;
+           descriptorWrites[1].pImageInfo = &imageInfo;
+            jlog("B");
             vkUpdateDescriptorSets(device._device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+            jlog("C");
         }
     }
 
@@ -114,6 +131,7 @@ class PostProcessRenderSetup {
     
 };
 
+//https://www.saschawillems.de/blog/2016/08/13/vulkan-tutorial-on-rendering-a-fullscreen-quad-without-buffers/
 class PostProcessRenderInstance {
     public:
     RenderPass renderPass;
@@ -151,7 +169,7 @@ class PostProcessRenderInstance {
 
         // Creates the pipeline to render color + depth using shaders
         std::vector<Shader> x = {renderSetup->vertShader, renderSetup->fragShader};
-         jlog("init pipe");
+         jlog("init pp pipe");
         pipeline.init((*device), imgDim.width, imgDim.height, x, {&renderSetup->postProcessDescSet._descriptorSetLayout}, renderPass);
         jlog("create cmd");
         this->createCommandBuffer();

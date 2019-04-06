@@ -58,7 +58,7 @@ class Pipeline {
     Pipeline(){
         
     }
-    void init(Device& device, uint32_t viewportWidth, uint32_t viewportHeight, std::vector<Shader>& inputShaderStages, std::vector<vk::DescriptorSetLayout*> descriptorSetLayouts, RenderPass renderPass){
+    void init(Device& device, uint32_t viewportWidth, uint32_t viewportHeight, std::vector<Shader>& inputShaderStages, std::vector<vk::DescriptorSetLayout*> descriptorSetLayouts, RenderPass& renderPass){
         // Convert shaders to config object
         VkPipelineShaderStageCreateInfo* shaderStages = new VkPipelineShaderStageCreateInfo[inputShaderStages.size()];
         auto i = 0;
@@ -66,6 +66,7 @@ class Pipeline {
             shaderStages[i] = stage._shaderStageInfo;
             i++;
         }
+        jcount();
         // Setup vertex shader input
         VkPipelineVertexInputStateCreateInfo vertexInputInfo;
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -155,7 +156,7 @@ class Pipeline {
         pipelineLayoutInfo.setLayoutCount = descriptorSetLayouts.size();
         pipelineLayoutInfo.pSetLayouts = setLayouts;
         _pipelineLayout = device._device.createPipelineLayout(pipelineLayoutInfo);
-
+        jcount();
         // Create the pipeline
         VkGraphicsPipelineCreateInfo pipelineInfo = {};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -173,8 +174,9 @@ class Pipeline {
         pipelineInfo.subpass = 0;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
         vk::PipelineCache x=vk::PipelineCache();
+        jcount();
         _graphicsPipeline = device._device.createGraphicsPipeline(x, pipelineInfo, nullptr);
-
+        jcount();
         // Clear shaders after they've been loaded
         // TODO should this be done here or in the actual shader?
         for(auto& stage : inputShaderStages){
@@ -187,7 +189,7 @@ class Pipeline {
             
             jlog("destroy done");
         }
-        
+        jcount();
         // delete shaderStages;
         jlog("Pipeline created");
     }

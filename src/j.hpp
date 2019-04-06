@@ -44,6 +44,7 @@ void jcountReset(){
 }
 
 void jwaitForEnter(){
+	jlog("Press enter to continue: ");
     std::cin.get();
 }
 

@@ -58,6 +58,7 @@ void cleanup(WindowManager& wm, Renderer& renderer, Swapchain& swapchain, SceneR
 
 int main() 
 {
+    //jwaitForEnter();
     uint32_t maxSwapchainImgCount = 2;
     Renderer renderer;
     vk::SurfaceKHR surface;
@@ -86,6 +87,35 @@ int main()
       // Create surface to render to and initialize a device compatable with that surface
       surface = wm.createSurface(renderer._instance._instance);
       renderer.initDevice(surface);
+
+
+
+      loadedImg._device = renderer._device;
+      loadedImg.loadImageFromFile(&renderer._device);
+
+      VkSamplerCreateInfo samplerInfo = {};
+      samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+      samplerInfo.magFilter = VK_FILTER_LINEAR;
+      samplerInfo.minFilter = VK_FILTER_LINEAR;
+      samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+      samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+      samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+      samplerInfo.anisotropyEnable = VK_TRUE;
+      samplerInfo.maxAnisotropy = 16;
+      samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+      samplerInfo.unnormalizedCoordinates = VK_FALSE;
+      samplerInfo.compareEnable = VK_FALSE;
+      samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+      samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+
+      if (vkCreateSampler(renderer._device._device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
+          throw std::runtime_error("failed to create texture sampler!");
+      }
+      jlog("TEXTURE LOADED");
+
+      // loadedImg.createImage(_swapChainExtent.width, _swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+      
+      // loadedImg.transitionImageLayout(depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
       sceneRenderSetup.init(&renderer._device, maxSwapchainImgCount);
       postProcessRenderSetup.init(&renderer._device, maxSwapchainImgCount);

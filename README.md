@@ -37,6 +37,30 @@ Header only vulkan lib with the goal of one day support vr/ar multitasking clean
  - To get includes for autocomplete run:
    - node build.js generateAutoCompleteFile
 
+### Debugging using winDbg
+ - Download winDbg
+ - Add a stall to the start of the program (eg. std::cin.get())
+ - build ( with debugger options to generate pdb file ) and run
+ - file -> attach to process -> your exe name
+ - windbg sestting -> debugging settings -> set source path to 
+ ```
+  C:\(Path to project)\nativeMultitasking\*
+  C:\(Path to project)\nativeMultitasking\src\*
+  C:\(Path to project)\nativeMultitasking\src\engine\*
+  C:\(Path to project)\nativeMultitasking
+ ```
+- and set Symbol path to 
+```
+C:\(Path to project)\nativeMultitasking\nativeSrc\*
+```
+- Restart winDbg
+- Repeat above until you attach again
+- File -> open source file -> open main.cpp
+- Right click on a line and set breakpoint
+- Press go
+
+
+
 ```
 Created by:
 _____ _ ___ _       _____ _     _   
