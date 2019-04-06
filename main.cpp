@@ -76,7 +76,8 @@ int main()
       // Create vulkan instance with extensions from display api's and with external memory for compositing
       std::vector<std::string> intanceExtensions = {
         VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME,
-        VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME
+        VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME,
+        VK_EXT_DEBUG_UTILS_EXTENSION_NAME
       };
       wm.init(800,600);
       wm.getRequiredInstanceExtensions(intanceExtensions);
