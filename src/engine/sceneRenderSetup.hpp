@@ -11,8 +11,6 @@
 #include "image.hpp"
 
 
-
-
 class SceneRenderSetup {
     public:
     Shader vertShader;
@@ -25,10 +23,37 @@ class SceneRenderSetup {
     int meshCount = 500;
     Scene scene;
     Camera cam;
+
+    Image loadedImg;
+    VkSampler textureSampler;
+
     SceneRenderSetup(){
     }
     void init(Device* d, uint32_t maxSwapchainImgCount){
         device = d;
+
+        loadedImg._device = *d;
+        loadedImg.loadImageFromFile(d);
+
+        VkSamplerCreateInfo samplerInfo = {};
+        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerInfo.magFilter = VK_FILTER_LINEAR;
+        samplerInfo.minFilter = VK_FILTER_LINEAR;
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.anisotropyEnable = VK_TRUE;
+        samplerInfo.maxAnisotropy = 16;
+        samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+        samplerInfo.unnormalizedCoordinates = VK_FALSE;
+        samplerInfo.compareEnable = VK_FALSE;
+        samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+
+        if (vkCreateSampler(d->_device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create texture sampler!");
+        }
+        jlog("TEXTURE LOADED");
 
         // Create main descriptor set pools
         sceneDescSet.init(*this->device, maxSwapchainImgCount, 1);
@@ -36,7 +61,7 @@ class SceneRenderSetup {
 
         // Create scene buffers and pool
         scene.createUniformBuffer(*this->device, maxSwapchainImgCount);
-        scene.createDescriptorSet(*this->device, sceneDescSet._descriptorPool,  sceneDescSet._descriptorSetLayout, maxSwapchainImgCount);
+        scene.createDescriptorSet(*this->device, sceneDescSet._descriptorPool,  sceneDescSet._descriptorSetLayout, maxSwapchainImgCount, &loadedImg, &textureSampler);
 
         // Create descriptor set per mesh
         jlog("creating meshes");

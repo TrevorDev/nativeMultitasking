@@ -12,7 +12,7 @@
 //     outColor = texture(texSampler, fragTexCoord);
 // }
 
-// layout(binding = 1) uniform sampler2D texSampler;
+layout(set=0, binding = 1) uniform sampler2D texSampler;
 
 layout(location = 0) in vec3 fragColor;
 layout(location = 1) in vec2 fragTexCoord;
@@ -57,5 +57,5 @@ void main() {
     // vec3 specularLighting = matSpecularReflectances * lightSpecularIntensitys * specularTerm;
 
     // outColor = vec4(fragColor*(diffuseLighting+specularLighting),1); //  vec4(fragColor,1)//  = vec4(0.5,0.3,0.3,1); //texture(texSampler, fragTexCoord);
-    outColor = vec4(0.3,0.5,0.7,1);
+    outColor = texture(texSampler, fragTexCoord);
 }
